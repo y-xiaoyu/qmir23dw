@@ -4,7 +4,7 @@ output:
   learnr::tutorial:
     progressive: true
     allow_skip: false
-    css: "../../../css/learnr-theme.css"
+    css: "./css/learnr-theme.css"
 runtime: shiny_prerendered
 ---
 
@@ -16,11 +16,11 @@ library(tidyverse)
 library(gradethis)
 gradethis::gradethis_setup()
 
-
+rm(list=ls())
 ## Data
 
-#load("../../../data/df_learnr03_ep_elections.rda") # for local testing
-usethis::use_data(ep_elections, ep_elections, internal = TRUE, overwrite = T)
+#load("./data_raw/df_learnr03_ep_elections.rda") # for local testing
+#usethis::use_data(ep_elections, ep_elections, internal = TRUE, overwrite = T)
 ```
 
 ## Introduction
