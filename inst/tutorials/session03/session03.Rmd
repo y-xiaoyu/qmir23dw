@@ -22,7 +22,7 @@ rm(list=ls())
 #load("./data_raw/df_learnr03_ep_elections.rda")
 #usethis::use_data(ep_elections, internal = F)
 
-data(ep_elections)
+data(ep_elections.rda)
 
 ```
 
