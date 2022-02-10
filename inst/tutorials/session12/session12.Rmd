@@ -1,10 +1,10 @@
 ---
-title: "Session 13 - Logistic Regression"
+title: "Session 12 - Logistic Regression"
 output: 
   learnr::tutorial:
     progressive: true
     allow_skip: false
-    css: "css/learnr-theme.css"
+    css: "./css/learnr-theme.css"
 runtime: shiny_prerendered
 ---
 
