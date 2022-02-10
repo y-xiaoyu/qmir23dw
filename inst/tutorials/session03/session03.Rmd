@@ -19,8 +19,11 @@ gradethis::gradethis_setup()
 rm(list=ls())
 ## Data
 
-#load("./data_raw/df_learnr03_ep_elections.rda") # for local testing
-#usethis::use_data(ep_elections, ep_elections, internal = TRUE, overwrite = T)
+#load("./data_raw/df_learnr03_ep_elections.rda")
+#usethis::use_data(ep_elections, internal = F)
+
+data(ep_elections)
+
 ```
 
 ## Introduction
