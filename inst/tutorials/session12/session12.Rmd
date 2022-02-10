@@ -1,5 +1,5 @@
 ---
-title: "Session 13 - Causal Inference"
+title: "Session 12 - Causal Inference"
 output: 
   learnr::tutorial:
     progressive: true

@@ -9,18 +9,20 @@ runtime: shiny_prerendered
 ---
 
 ```{r setup, include=FALSE}
+
 library(learnr)
 library(learnrhash)
 library(tidyverse)
 library(highlight)
 library(gradethis)
 library(texreg)
+library(qmir22dw)
 
 gradethis::gradethis_setup()
 
-load("./data_raw/df_learnr15.rda")
-df_logistic <- df_learnr15
-usethis::use_data(df_logistic, internal = F, overwrite = TRUE)
+#load("./data_raw/df_learnr15.rda")
+#df_logistic <- df_learnr15
+#usethis::use_data(df_logistic, internal = F, overwrite = TRUE)
 
 ```
 
