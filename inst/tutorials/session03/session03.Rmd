@@ -20,7 +20,7 @@ gradethis::gradethis_setup()
 ## Data
 
 #load("../../../data/df_learnr03_ep_elections.rda") # for local testing
-# usethis::use_data("./data/df_learnr03_ep_elections.rda", ep_elections, internal = TRUE)
+usethis::use_data(ep_elections, ep_elections, internal = TRUE, overwrite = T)
 ```
 
 ## Introduction
