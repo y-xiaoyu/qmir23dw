@@ -1,0 +1,251 @@
+---
+title: "Session 05 - Data Visualization"
+output: 
+  learnr::tutorial:
+    progressive: true
+    allow_skip: false
+    css: "css/learnr-theme.css"
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+## Packages
+library(learnr)
+library(learnrhash)
+library(tidyverse)
+library(qmir22dw)
+gradethis::gradethis_setup()
+
+## Data
+
+load("./data_raw/df_learnr05_ep_elections.rda")
+usethis::use_data(ep_elections, internal = F, overwrite = TRUE)
+
+
+```
+
+## Introduction
+
+This week we have talked about all things data visualization with **ggplot2** and how visualization can help us to explore our data and relationships between variables. 
+
+In this tutorial, you'll refresh and review some of the things you have learned this week.
+
+### Packages
+
+For the following exercises, you'll need the **tidyverse** package. You should already have this package installed, so go ahead and load it:
+
+```{r load-packages, exercise=TRUE}
+
+```
+
+```{r load-packages-solution}
+library(tidyverse)
+```
+
+```{r load-packages-check}
+grade_this_code("The tidyverse is now loaded!")
+```
+
+## Data
+
+The data set for this tutorial (`ep_elections`) contains information on voter turnout and the number of total votes cast in elections to the European Parliament. You will use this data set later to visually explore voter turnout in European Parliament elections.
+
+Below you find an overview of the data set.
+
+| Variable name |  Description
+|:--------------|:-------------
+| `country` | Country name
+| `election_type` | Type of election
+| `year` | Year of election
+| `voter_turnout` | Voter turnout in %
+| `total_vote` | Total number of voters who have turned out
+
+The data for this week is called `ep_elections` and is already loaded into the environment. It contains information on voter turnout and total votes cast in elections for the European Parliament. You will use this data to visualise some information and gain a few more insights into the data.
+
+### First look at the data
+
+You can take a peek at the data using the box below.
+
+```{r explore-data, exercise=TRUE}
+
+```
+
+To get a better idea of turnout in European Parliament elections, calculate the average voter turnout across all countries and elections in the data set.
+
+```{r exercise-calculate-mean, exercise=TRUE}
+
+```
+
+```{r exercise-calculate-mean-sol, echo=FALSE, eval=FALSE}
+# dplyr
+ep_elections %>% summarize(mean = mean(voter_turnout))
+
+# base R
+mean(ep_elections$voter_turnout)
+```
+
+```{r question-mean-turnout, echo=FALSE}
+question_text(
+  "How high is the average voter turnout across all countries and elections in the data set? Enter the number, rounded to the nearest integer.",
+  answer("51", correct = TRUE),
+  allow_retry = TRUE,
+  incorrect = "Not quite. Have you rounded the number to the nearest integer?"
+)
+```
+
+## Exercises
+
+### Visualizing covariation
+
+```{r question-covariation, echo=FALSE}
+question("Which of the following plots is suited to present the covariation of a categorical and a continuous variable?",
+  answer("Box plot", correct = TRUE),
+  answer("Bar plot", message = "A bar plot is usually used to present the variation of a single categorical variable. If you need help, check Wickham/Grolemund (2017) Chapter 7 or the lecture material."),
+  answer("Scatter plot", message = "A scatter plot is usually used to present the covariation of two continuous variables. If you need help, check Wickham/Grolemund (2017) Chapter 7 or the lecture material."),
+  allow_retry = TRUE,
+  random_answer_order = TRUE
+)
+```
+
+### Geometric objects
+
+```{r question-geoms, echo=FALSE}
+question("What is the function of the geometric object in ggplot2's syntax?",
+  answer("It determines the type of figure.", correct = TRUE),
+  answer("It specifies the length of the x- and y-axis.", message = "The length of the axes, also called limits, is specified using \"xlim()\" and \"ylim()\". This is something that we have not covered yet. If you want to learn more about this check the ggplot2 reference on how to set scale limits."),
+  answer("It creates an empty coordinate system.", message = "The empty coordinate system is created by the \"ggplot()\" function. If you need help, check Wickham/Grolemund (2017) Chapter 3 or the lecture material."),
+  allow_retry = TRUE,
+  random_answer_order = TRUE
+)
+```
+
+### Jitterplots
+
+```{r question-geom-jitter, echo=FALSE}
+question("What kind of figure does \"geom_jitter()\" create?",
+  answer("It creates a scatterplot, in which the observations vary slightly around their actual value.", correct = TRUE),
+  answer("It creates a line plot.", message = "A line plot is created with \"geom_line()\". If you need help, check Wickham/Grolemund (2017) Chapter 3 or the lecture material."),
+  answer("It adds a regression line to a figure.", message = "A regression line is added with \"geom_smooth()\". If you need help, check Wickham/Grolemund (2017) Chapter 3 or the lecture material."),
+  allow_retry = TRUE,
+  random_answer_order = TRUE
+)
+```
+
+### Faceting
+
+```{r question-facet-grid, echo=FALSE}
+question("What does the \"facet_wrap()\" function do?",
+  answer("It allows you to visualize subsets of data in a grid based on the values of a categorical variable.", correct = TRUE),
+  answer("It adds a grid to your figure.", message = "The grid is an element of the theme. Check the lecture material for an overview of ggplot2's built-in themes or \"help(theme)\" to learn more about how to customize the grid in your figure."),
+  answer("It allows you to create a grid of different types of figures.", message = "Check out the \"patchwork\" package to learn how to combine separate ggplots in one figure."),
+  allow_retry = TRUE,
+  random_answer_order = TRUE
+  )
+```
+
+### Legends
+
+```{r question-lineplot, echo=FALSE}
+question("Which of the following families of functions helps you to make specific changes to the legend of your plot?",
+  answer("scale_*", correct = TRUE),
+  answer("geom_*", message = "This determines the geometric object, i.e. the type of figure that will be plotted (e.g. a scatter plot, a box plot etc.). If you need help, check the lab material."),
+  answer("theme_*", message = "This changes the overall look of your plot and in fact has some arguments that allow you to e.g. change the position of the legend in the plot, but it does not allow you to e.g. change the labels in the legend. If you need help, check the lab material."),
+  allow_retry = TRUE,
+  random_answer_order = TRUE
+  )
+```
+
+### European Parliament elections
+
+Let's come back to exploring voter turnout in European Parliament elections, using the data set for this learnr tutorial: `ep_elections`. 
+
+###
+
+Create a scatter plot of the variables *total_vote* and *voter_turnout*.
+
+```{r exercise-scatter-plot, exercise=TRUE}
+
+```
+
+```{r exercise-scatter-plot-sol, eval=FALSE, echo=FALSE}
+ggplot(ep_elections) +
+  geom_point(aes(x = total_vote, y = voter_turnout))
+```
+
+<div id="exercise-scatter-plot-hint">
+**Hint:** Have you (correctly) specified the data and the mappings? The geometric object for creating a scatter plot is `geom_point()`.
+</div>
+
+```{r question-scatterplot, echo=FALSE}
+question("What's the relationship between the two variables?",
+         answer("A positive relationship", correct = TRUE),
+         answer("A negative relationship", message = "A negative relationship exists when one variable increases, the other variable decreases."),
+         answer("No relationship", message = "No clear relationship exists when there is no visible correlation between the two variables."),
+         allow_retry = TRUE
+         )
+```
+
+### Voter turnout in Germany and Austria
+
+Next, create a box plot and compare the median of *voter_turnout* in Germany and Austria. 
+
+```{r exercise-box-plot-1, exercise=TRUE}
+
+```
+
+```{r exercise-box-plot-1-sol, eval=FALSE, echo=FALSE}
+ep_elections %>%
+  filter(country %in% c("Austria", "Germany")) %>%
+  ggplot() +
+  geom_boxplot(aes(x = country, y = voter_turnout))
+```
+
+<div id="exercise-box-plot-1-hint">
+**Hint:** Use `filter()` to select Germany and Austria. The geometric object for creating a box plot is `geom_boxplot()`.
+</div>
+
+```{r question-boxplot-1, echo=FALSE}
+question("Is the median in Germany...?",
+         answer("higher than in Austria", correct = TRUE),
+         answer("lower than in Austria", message = "Have a look at your plot again. The median is represented by the thick line within the box."),
+         answer("the same as in Austria", message = "Have a look at your plot again. The median is represented by the thick line within the box."),
+         allow_retry = TRUE
+         )
+```
+
+### Voter turnout in the entire EU
+
+Create a box plot for *voter_turnout* in all countries in the data set. Add a horizontal line at 60%.
+
+```{r exercise-box-plot-2, exercise=TRUE}
+
+```
+
+```{r exercise-box-plot-2-sol, eval=FALSE, echo=FALSE}
+ep_elections %>%
+  ggplot(aes(country, voter_turnout)) +
+  geom_boxplot() +
+  geom_hline(yintercept = 60)
+```
+
+<div id="exercise-box-plot-2-hint">
+**Hint:** The geometric object for creating box plots is `geom_boxplot()`. With `geom_hline(yintercept = 60)` you can create a horizontal line at 60%.
+</div>
+
+```{r question-box-plot-2, echo=FALSE}
+question_text("How many countries have a median voter turnout higher than 60%?",
+         answer("5", correct = TRUE),
+         incorrect = "Are you sure you only counted the countries for which the median is higher than 60%?",
+         allow_retry = TRUE
+         )
+```
+
+## Submit
+
+```{r context="server"}
+learnrhash::encoder_logic()
+```
+
+```{r encode, echo=FALSE}
+learnrhash::encoder_ui(default_ui(url = "https://someurl.com"))
+```

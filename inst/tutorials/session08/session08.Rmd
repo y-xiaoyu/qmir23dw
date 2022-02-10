@@ -1,0 +1,298 @@
+---
+title: "Session 08 - Uncertainty and Inference"
+output: 
+  learnr::tutorial:
+    progressive: true
+    allow_skip: false
+    css: "css/learnr-theme.css"
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(learnrhash)
+gradethis::gradethis_setup()
+
+library(tidyverse)
+library(broom)
+library(texreg)
+library(qmir22dw)
+data(df_opposition) 
+```
+
+## Warm-Up
+
+Before we get our hands dirty with statistical inference in regression analysis, let's go over some of the key concepts discussed in this week's class.
+
+### Probability theory
+
+**What defines a random variable?**
+
+```{r randomvariable, echo = FALSE}
+question("A random variable...",
+  answer("is a numerical summary of the outcome of a process that can be repeated many times with different outcomes.", correct = T),
+  answer("refers to any phenomenon in which outcomes have a similar probability to occur.", correct = F, message = "Different outcomes of a random process can have different probabilities to occur."),
+  answer("captures all possible values that can come out of a random process.", correct = F, message = "All possible values of a random process are referred to as the sample space but are not a random variable."),
+  random_answer_order = TRUE,
+  allow_retry = T,
+  incorrect = "Hint: Have a look at the lecture material on population vs. sample."
+)
+```
+
+**What do z-scores tell you?**
+
+```{r zscore1, echo = FALSE}
+question("Z-scores provide information on:",
+  answer("How much each observation deviates from the mean in units of standard deviations.", correct = T),
+  answer("How much each observation varies in percent."),
+  answer("What the squared mean of the variable is."),
+  answer("What the average distance between two observations is."),
+  random_answer_order = TRUE,
+  allow_retry = T,
+  incorrect = "Hint: Have a look at the refresher material on probability theory."
+)
+```
+
+**What are z-scores good for?**
+
+```{r zscore2, echo = FALSE}
+question("Z-scores are an important statistic because...",
+  answer("they allow us to compare variation for differently scaled variables.", correct = T),
+  answer("they enable us to construct a standard normal distribution.", correct = T),
+  answer("they standardize random probability processes.", correct = F),
+  answer("none of the other answer options is correct."),
+  random_answer_order = TRUE,
+  allow_retry = T,
+  incorrect = "Hint: More than one answer may be correct."
+)
+
+```
+
+**What is so special about the density of the standard normal distribution?**
+
+```{r standardnorm, echo = FALSE}
+question("The density of the standard normal distribution has a very important characteristic. When we look at the area that lies between about -2 and 2 standard deviations away from the mean, ...",
+  answer("the range of values contains about 95% of all observations.", correct = T),
+  answer("the curve of the distribution crosses the x-axis here."),
+  answer("it splits the distribution in half."),
+  answer("All of the answer options are correct."),
+  random_answer_order = TRUE,
+  allow_retry = T,
+  incorrect = "Hint: This characteristic holds for both 'regular' normal distributions and standard normal distributions. Please have a look at the corresponding slides."
+)
+
+```
+
+
+### Confidence intervals, standard errors and hypothesis tests
+
+Let's have a look at standard errors, hypothesis tests, and confidence intervals.
+
+**Standard error**
+
+```{r se, echo = FALSE}
+question("What is the standard error?",
+  answer("It is the standard deviation of the sampling distribution of an estimate that is captured over many repeated samples.", correct = T),
+  answer("It is the normal standardized residual variance."),
+  answer("It describes the errors that statisticians make when they enter code into their programming language in an unconcentrated manner."),
+  answer("It is the mean for categorical variables."),
+  random_answer_order = TRUE,
+  allow_retry = T,
+  incorrect = "Hint: Have a look at the slides; what is the standard error good for? Why do we use it?"
+)
+
+```
+
+**Hypothesis test and significance levels**
+
+```{r significance, echo = FALSE}
+question("If we repeatedly sample from our population and test our hypothesis, a level of significance of 5% means:",
+  answer("There is a 5% chance that we reject the null hypothesis when it is true.", correct = T),
+  answer("There is a 5% chance that we are wrong when we fail to reject the null hypothesis."),
+  answer("There is a 5% chance that we do not reject the null hypothesis when it is wrong."),
+  answer("There is a 5% chance that we are wrong."),
+  random_answer_order = TRUE,
+  allow_retry = T,
+  incorrect = "Hint: Have a look at the slides on hypothesis testing."
+)
+```
+
+**Interpretation confidence intervals**
+
+```{r conf_int, echo = FALSE}
+question("A 95% confidence interval means:",
+  answer("95% of the intervals will contain the true population parameter if we repeatedly sample from the population to construct the confidence interval.", correct = T),
+  answer("The probability that the interval contains the true parameter is 95%.", correct = F, message = "This is a common misconception. The probability that the true parameter (which is fixed) is in the interval is either zero (if it is not in the estimated interval) or one (if it is). The problem is: We don't know (the true parameter)."),
+  answer("We are 95% certain that the true parameter is in the confidence interval."),
+  random_answer_order = TRUE,
+  allow_retry = T,
+  incorrect = "Hint: Have a look at the slides on confidence intervals."
+)
+```
+
+## Inference in regression analysis
+
+In this tutorial, you will be working again with the data on opposition party behavior in European national parliaments (`df_opposition`) by Tuttnauer (2018). This time, however, you don't only need to calculate estimates but you will conduct statistical inference and hypothesis testing.
+
+Let's look again at the model that you already had to specify in last week's exercise. As you might remember, you had to run a regression with `conflict_p` as dependent variable and `seatshare` as the main independent variable of interest. The working hypothesis was (and still is) that larger opposition parties oppose the government more often than smaller ones. 
+
+To control for potential confounders, the model also includes the following control variables:
+
+* `abs_lrdiff`: Ideological distance from the government as the absolute difference between a party's left-right position and the size-weighted average position of the government coalition.
+* `ge`:  Government-experience value that ranges between 0 if the party has always been in opposition and 1 if the party has always been in government.
+* `inst_power`:  Institutional power of the opposition measuring the strength of the committee system on a scale from 0 to 7.
+* `y_openness`: Average number of distinct government compositions in the past 10 years.
+* `importance`: Index ranging between 0 (low-importance parliament) and 1 (high-importance parliament).
+* `govtype_mod`: A dummy (=1) for surplus coalitions, in contrast with minimal-winning ones (=0).
+* `record_threshold`:The percentage of MPs needed to call for a recorded vote (ranging between 0 and 0.3).
+
+**Please estimate the regression model with the above mentioned variables. What can you say about the main explanatory variable (`seatshare`) in terms of its statistical significance?**
+
+```{r lm_1_sol, eval=FALSE, echo = FALSE}
+model <- lm(conflict_p ~ seatshare + abs_lrdiff + ge +
+              inst_power + y_openness + importance + govtype_mod + record_threshold , data = df_opposition)
+summary(model)
+```
+
+```{r lm_1, exercise = TRUE}
+
+```
+
+### Hypothesis testing
+
+**Can you reject the null hypothesis that the size of an opposition party has no effect on voting against the government at the 95% confidence level?**
+
+*Note that more than one answer can be correct.*
+
+```{r nullhypothesis, echo = FALSE}
+question("The null hypothesis of no effect is ...",
+  answer("not rejected because the t-statistic is not greater than the critical value of 1.96.", correct = T),
+  answer("not rejected because the p-value is greater than 0.05.", correct = T),
+  answer("rejected because the t-statistic is greater than the critical value of 1.96."),
+  answer("rejected because the t-statistic is smaller than the critical value of 1.96."),
+  answer("rejected because the p-value is smaller than 0.05."),
+  answer("rejected because the p-value is greater than 0.05."),
+  random_answer_order = TRUE,
+  allow_retry = T
+)
+```
+
+### Confidence intervals
+
+**Calculate the 95% confidence interval for the estimate of `seatshare`.**
+
+*You can re-run the regression model in the chunk below. Alternatively, the correct regression output is already stored in an object called `out_multivar`.*
+
+
+```{r confint_sol, eval = FALSE, echo = FALSE}
+out_multivar <- lm(conflict_p ~ seatshare + abs_lrdiff + ge +
+              inst_power + y_openness + importance + govtype_mod + record_threshold , data = df_opposition)
+
+# based on t-distribution
+out_multivar %>% tidy(conf.int = TRUE) %>% filter(term == "seatshare")
+
+# based on normal distribution
+out_multivar %>% tidy() %>% 
+  mutate(conf.low = estimate - qnorm(0.975) * std.error
+, conf.high = estimate + qnorm(0.975) * std.error) %>%
+ filter(term == "seatshare")
+```
+
+```{r confint-setup}
+out_multivar <- lm(conflict_p ~ seatshare + abs_lrdiff + ge +
+              inst_power + y_openness + importance + govtype_mod + record_threshold , data = df_opposition)
+```
+
+```{r confint, exercise = TRUE, exercise.setup = "confint-setup"}
+
+```
+
+```{r confint_low, echo = FALSE}
+question_text("Enter the value of the lower bound of the 95% confidence interval here (rounded to two digits behind the decimal):",
+  answer("-0.10", correct = T, message = "You chose to calculate the interval based on the normal distribution. Note that some researchers prefer to calculate it based on the t-distribution which makes the interval more conservative."),
+  answer("-0.12", correct = T, message = "You chose to calculate the interval based on the t-distribution. Note that some researchers prefer to calculate it based on the normal distribution which makes the interval less conservative."),
+    answer("-11.79", correct = F, message = "Close. Hint: Do not report the value in percent."),
+  answer("-9.93", correct = F, message = "Close. Hint: Do not report the value in percent."),
+  allow_retry = T, incorrect = "Hint: Revisit the code from the lab-session."
+)
+```
+
+```{r confint_high, echo = FALSE}
+question_text("Enter the value of the upper bound of the 95% confidence interval here (rounded to two digits behind the decimal):",
+  answer("1.24", correct = T, message = "Correct. You chose to calculate the interval based on the normal distribution. Note that some researchers prefer to calculate it based on the t-distribution which makes the interval more conservative."),
+    answer("1.25", correct = T, message = "Correct. You chose to calculate the interval based on the normal distribution. Note that some researchers prefer to calculate it based on the t-distribution which makes the interval more conservative."),
+  answer("1.26", correct = T, message = "Correct. You chose to calculate the interval based on the t-distribution. Note that some researchers prefer to calculate it based on the normal distribution which makes the interval less conservative."),
+    answer("124.49", correct = F, message = "Close. Hint: Do not report the value in percent."),
+  answer("126.34", correct = F, message = "Close. Hint: Do not report the value in percent."),
+  allow_retry = T, incorrect = "Hint: Revisit the code from the lab-session."
+)
+```
+
+### Prediction intervals
+
+**Calculate the 95% prediction interval for the expected (average) opposition score of a party with a seat share of 30% keeping all other values at their respective mean/median (Remember that `govtype_mod` is a dummy variable). To facilitate the substantive interpretation, please report your result in percent and rounded to two integer digits (e.g., 0.23, 4.5, 13, 60, 65).**
+
+1. Start with estimating the regression model. Alternatively, the correct regression output is already stored in an object called `out_multivar`.
+2. Setup a data frame with the scenario of interest.
+3. Use the `predict()` function to calculate the predictions as well as the corresponding prediction interval.
+
+```{r predict_sol, echo = FALSE, eval = FALSE}
+out_multivar <- lm(conflict_p ~ seatshare + abs_lrdiff + ge + inst_power + 
+              y_openness + importance + govtype_mod + record_threshold, data = df_opposition)
+
+df_scenario <- tibble(
+   seatshare = c(0.3)
+  , abs_lrdiff = mean(df_opposition$abs_lrdiff)
+  , ge = mean(df_opposition$ge)
+  , inst_power = mean(df_opposition$inst_power)
+  , y_openness = mean(df_opposition$y_openness)
+  , importance = mean(df_opposition$importance)
+  , govtype_mod = median(df_opposition$govtype_mod)
+  , record_threshold = mean(df_opposition$record_threshold)
+)
+
+predict(out_multivar, newdata = df_scenario, interval = "confidence") %>% round(2)*100
+```
+
+```{r predict-setup}
+out_multivar <- lm(conflict_p ~ seatshare + abs_lrdiff + ge +
+              inst_power + y_openness + importance + govtype_mod + record_threshold , data = df_opposition)
+```
+
+
+```{r predict, exercise = TRUE , exercise.setup = "predict-setup"}
+
+```
+
+
+```{r predict_low, echo = FALSE}
+question_text("Enter the value of the lower bound of the 95% prediction interval here (in percent):",
+  answer("52", correct = T),
+  answer("0.52", correct = F, message = "Close. Please report the value in percent for a more substantial interpretation of the result."),
+  answer("15", correct = F, message = "You calculated the uncertainty interval for a future prediction. Have a look at the slides again to make sure you understand the difference between uncertainty regarding a predicted average/expected value and uncertainty regarding the prediction of a (single) future observation. Then pick the correct option in the `predict()` function."), 
+  allow_retry = T, incorrect = "Hint: Revisit the code from the lab-session."
+)
+```
+
+```{r predict_high, echo = FALSE}
+question_text("Enter the value of the upper bound of the 95% prediction interval here:",
+  answer("80", correct = T),
+  answer("79", correct = F, message = "Close. Make sure to round correctly."),
+  answer("80.1", correct = T, message = "Correct. However, reporting 80% would have been detailed enough."),
+  answer("0.80", correct = F, message = "Close. Please report the value in percent for a more substantial interpretation of the result."),
+  answer("117", correct = F, message = "You calculated the uncertainty interval for a future prediction. Have a look at the slides again to make sure you understand the difference between uncertainty regarding a predicted average/expected value and uncertainty regarding the prediction of a (single) future observation. Then pick the correct option in the `predict()` function."), 
+  allow_retry = T, incorrect = "Hint: Revisit the code from the lab-session."
+)
+```
+
+
+## Submit
+
+```{r context="server"}
+learnrhash::encoder_logic(strip_output = TRUE)
+```
+
+```{r encode, echo=FALSE}
+learnrhash::encoder_ui(default_ui(url = "SOMEURL"))
+```
+

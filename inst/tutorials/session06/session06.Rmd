@@ -1,0 +1,351 @@
+---
+title: "Week 08 - Bivariate Regression"
+output: 
+  learnr::tutorial:
+    progressive: true
+    allow_skip: false
+    css: "css/learnr-theme.css"
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(learnrhash)
+gradethis::gradethis_setup(exercise.reveal_solution = FALSE)
+library(qmir22dw)
+library(tidyverse)
+#data(df_opposition) 
+
+#load("./data_raw/df_learnr_opposition.rda")
+#usethis::use_data(df_opposition, internal = F, overwrite = TRUE)
+
+```
+
+## Introduction
+
+After you got to know `R` and the `tidyverse` in previous weeks, it's now time to run your first statistical model. Following this week's lab session, you continue wondering why opposition parties in European national parliaments vary in their conflict-seeking behavior. Luckily, we have the data from Tuttnauer (2018) which allows us to explore the behavior of parliamentary opposition parties in 16 EU member states.^[Tuttnauer, O. (2018) "If you can beat them, confront them: Party-level analysis of opposition behavior in European national parliaments". *European Union Politics*, 19(2), 278–298.] 
+
+Before doing so, however, you have to load the required packages. Moreover, you should also familiarize yourself with the data first. 
+
+### Packages
+
+For the following exercises, you'll only need the **tidyverse** package. All other functions should come with base `R`. You should already have `tidyverse` installed, so just go ahead and load it:
+
+```{r load-packages, exercise=TRUE}
+
+```
+
+```{r load-packages-solution}
+library(tidyverse)
+```
+
+```{r load-packages-check}
+grade_this_code("The tidyverse is now loaded!")
+```
+
+## Presenting numerical data
+
+Before we start working with the data, let's talk about the presentation of numerical data, first. While we can often estimate values of interest with great accuracy with our statistical models (for example, we might find that the average unemployment rate in our data  is 12.489746168764 %), reporting every digit seems unnecessary (and in this case not very helpful for our overall understanding of the labor market situation). Generally speaking,  we face the challenge of finding a **balance between accuracy and readability** when reporting numerical results. Thus, it is recommendable to report what is often referred to as **"meaningful" or "effective" numbers** --- rounded not too much and not too little.^[Cole, TJ. (2015) "Too many digits: the presentation of numerical data". *Archives of Disease in Childhood* 100. 608-609.]
+
+Yet, what is a "meaningful" number in practice? Unfortunately, there are no universal rules and, to make things even more complicated, the rules for using numbers in academic writing that do exist vary among academic disciplines, journals, and style guides (like the *Chicago Manual of Style* or the *APA Style Manual*). 
+
+For this tutorial (and the weeks to come), you will generally be required to **round numbers to two integer numbers** (integer numbers are positive and negative natural numbers as well as zero: *...-2,-1,0,1,2...*). 
+
+One main exception are numbers with more than two digits *before the decimal sign* (for example, 1564.544). In that case, please provide the whole (rounded) number without digits after the decimal (1565 in this example).
+
+Here are some examples:
+
+| Original value  | Reported value             |
+|-----------------|----------------------------|
+| 0.23444         | $\rightarrow$ 0.23         |
+| 4.021           | $\rightarrow$ 4.0          |
+| 4.52861         | $\rightarrow$ 4.5          |
+| 13.1248         | $\rightarrow$ 13           |
+| 125.1           | $\rightarrow$ 125          |
+| 125             | $\rightarrow$ 125          |
+| 12,546          | $\rightarrow$ 12546        |
+
+
+Two more things:
+
+1. As mentioned before, you may sometimes be specifically asked to round to a specified number of digits *after the decimal*. For example, if you are asked to round 125.10243214 to two (integer) digits after the decimal, please provide 125.10 in the solution.
+
+2. **Percentage values** are often stored as values that are bound between 0 and 1 (instead of 0% and 100%). In these cases, you will generally be required to report estimates in **percent**. For example, the vote share stored in a variable in `R` says 0.12 but refers to percentage values. In this case, please report your final result as 12 %.
+
+### Rounding numbers in R
+
+Not surprisingly, we can also round numbers in `R`. The main function to round numeric vectors numbers is called `round()` and takes a numeric vector or value as well as the **number of decimal places** to round to as input: 
+
+- `round(x, digits = 0)`: Rounds the values in its first argument (i.e., x) to the specified number of decimal places.
+
+Here is an example using 189.48615 as input:
+
+
+```{r round-example}
+round(189.48615, 0)
+round(189.48615, 1)
+round(189.48615, 2)
+```
+
+As you can see, you have to be bit careful: If you are asked to report to two meaningful numbers, some people may be inclined to use `round(189.48615, 2)`. However, as  189.48615 has more than two digits *before the decimal sign*, we do not need to report decimal places and `round(189.48615, 0)` is sufficient for our purpose.
+
+
+Try it yourself! 
+
+**Please round 89.48615 to two meaningful digits**
+
+```{r round-sol,echo = FALSE, eval=FALSE}
+round(89.48615, 0)
+```
+
+
+```{r round, exercise = TRUE}
+
+```
+
+
+
+```{r round-q, echo = FALSE}
+question("Please round 89.48615 to two meaningful digits:",
+  answer("89", correct = T, message = "As the number has two integer digits 'before' the decimal, you were right not to report digits 'after' the decimal. Thus, using round(89.48615, 0) is doing the job for you."),
+  answer("90", correct = F, message = "You rounded to a single 'significant' number which is not accurate enough. Please report the result rounded to two meaningful digits."),
+  answer("89.49", correct = F, message = "Too detailed. You rounded to two digits after the decimal. Please round to two meaningful integer numbers."),
+  random_answer_order = TRUE,
+  allow_retry = T
+)
+
+```
+
+
+
+
+## Getting to know the data
+
+Now it's time to get started with the data. As mentioned before, the data for this tutorial is the same data on opposition parties in national European parliaments that we used in the lab. The data set is already preloaded into the environment and called `df_opposition`. Let's check it out.
+
+### The data set
+
+**How many observations and variables does the data frame have?**
+
+```{r check-data-sol,echo = FALSE, eval=FALSE}
+dim(df_opposition)
+```
+
+
+```{r check-data, exercise = TRUE}
+
+```
+
+
+```{r check-data-q1, echo = FALSE}
+question_text("Enter the number of observations here:",
+  answer("54", correct = T),
+  allow_retry = T,
+  incorrect = "Hint: Try dim(), nrow(), or glimpse()."
+)
+
+```
+
+
+```{r check-data-q2, echo = FALSE}
+question_text("Enter the number of variables here:",
+  answer("17", correct = T),
+  allow_retry = T,
+  incorrect = "Hint: Try dim(), ncol(), or glimpse()."
+)
+
+```
+
+### Dependent variable: Voting against the government
+ 
+As in the lab session, we want to better understand why and how often opposition parties vote against the government. Hence, the  percentage of votes opposed to the government is our dependent variable. The corresponding variable in the data set is called `conflict_p`. 
+
+#### Summary statistics
+
+**What is the median value of this variable (in percent and rounded to two meaningful (integer) digits (e.g., 0.23, 4.5, 13))?**
+
+
+```{r median-conflict-sol, echo = FALSE, eval=FALSE}
+median(df_opposition$conflict_p)
+```
+
+```{r median-conflict, exercise = TRUE}
+
+```
+
+
+```{r median-conflict-q, echo = FALSE}
+question("The median  of the conflict measure is (in percent and rounded to two meaningful digits):",
+  answer("54", correct = T),
+  answer("0.5", correct = F, message = "Please report the result in percent and rounded to two digits."),
+  answer("0.54", correct = F, message = "Close but remember that you are supposed to report the median in percent."),
+  answer("0.054", correct = F, message = "Please report the result in percent and rounded to two digits."),
+  answer("50", correct = F, message = "Please report the result rounded to two meaningful digits."),
+  answer("53.68", correct = F, message = "Not wrong per se, but too detailed."),
+  random_answer_order = TRUE,
+  allow_retry = T
+)
+
+```
+
+
+**What is its standard deviation (in percent and rounded to two meaningful (integer) digits (e.g., 0.23, 4.5, 13))?**
+
+```{r sd-conflict-sol, echo = FALSE, eval=FALSE}
+sd(df_opposition$conflict_p) %>% round(2)*100
+```
+
+```{r sd-conflict, exercise = TRUE}
+
+```
+
+```{r sd-conflict-q, echo = FALSE}
+question_text(
+  "The standard deviation of the conflict measure is (in percent and rounded to two meaningful digits):",
+  answer("0.27", correct = F, message = "Close, but you were asked to report the result in percent."),
+  answer("27", correct = T),
+  allow_retry = TRUE
+)
+```
+
+### Independent variable: Party's seat share
+
+One common argument in the literature on opposition parties is that larger opposition parties oppose the government more often than smaller ones. Let's have a closer look at this hypothesis. As a proxy for party size we are taking its seat share in the parliament stored in the variable `seatshare`. Before we run the regression analysis, however, we should know how the variable looks like.
+
+* **Have a look at the variable using a histogram.**
+* **Make the plot look nicer by using `theme_minimal()`.**
+
+```{r histogram, exercise = TRUE}
+
+```
+
+```{r histogram-solution}
+ggplot(df_opposition) + 
+  geom_histogram(aes(x = seatshare)) + 
+  theme_minimal() 
+```
+ 
+```{r histogram-code-check}
+grade_this_code()
+```
+
+<div id="histogram-hint">
+**Hint:** Have you (correctly) specified the data and the mappings? The geometric object for creating a histogram is `geom_histogram()`.
+</div>
+
+#### Summary statistics
+
+Now that you got a first visual glimpse at the explanatory variable, let's calculate some summary statistics.
+
+**What is the average value of `seatshare` in the data (in percent and rounded to two meaningful digits)?**
+
+```{r avg-seatshare-sol, eval=FALSE, echo = FALSE}
+mean(df_opposition$seatshare) %>% round(2)*100
+```
+
+```{r avg-seatshare, exercise = TRUE}
+
+```
+
+```{r avg-seatshare-q, echo = FALSE}
+question_text(
+  "The average value of `seatshare` is (in percent and rounded to two meaningful digits):",
+  answer("12", correct = T),
+  allow_retry = T
+  )
+```
+
+**What is the maximum of `seatshare` (in percent and rounded to two meaningful digits)?**
+
+```{r max-seatshare-sol, echo = FALSE, eval=FALSE}
+max(df_opposition$seatshare) %>% round(2)*100
+```
+
+
+```{r max-seatshare, exercise = TRUE}
+
+```
+
+
+```{r max-seatshare-q, echo = FALSE}
+question_text(
+  "The maximum seat share of an opposition party in the data is (in percent and rounded to two meaningful digits):",
+  answer("41", correct = T),
+  allow_retry = T
+  )
+```
+
+## Bivariate regression
+
+Time to run the regression. Regress the average opposition measure (`conflict_p`) on a party's seat share (`seatshare`) using the data set `df_opposition`.
+
+```{r lm-1-sol, eval=FALSE, echo = FALSE}
+lm(conflict_p ~ seatshare, data = df_opposition)
+```
+
+```{r lm-1, exercise = TRUE}
+
+```
+
+Please provide an interpretation of the estimated regression coefficient. 
+
+*Note that more than one answer can be correct.*
+
+```{r qlm-1-q, echo = FALSE}
+question("What does the coefficient estimate tell us about the relationship between seat share and the share of opposing votes to the government?",
+  answer("A one unit increase in seat share is associated with an increase of about 56% in votes against the government.", correct = F, message = "Keep in mind that reporting increases in percent is a relative measure. However, the dependent variable is measured in percentage points."),
+    answer("A one unit increase in seat share causes an increase in votes against the government of about 56 percentage points.", correct = F, message = "Be careful when making causal statements. Saying increases in seat share cause an increase in votes would only hold if you assume that there are no confounders, i.e. no unobserved factors that affect both the size of a party in parliament and its behavior vis-a-vis the government. Without randomization or further control variables, this seems not realistic to hold in practice."),
+  answer("An increase of one percentage point in vote share is associated with a an increase of about 0.56 percentage points in the the share of votes against the government.", correct = T),
+    answer("We expect an increase of about 56 percentage points in the share of votes against the government when the seat share variable increases by one unit.", correct = T),
+  random_answer_order = TRUE,
+  allow_retry = T
+)
+
+```
+
+## Predicted values
+
+Not only does the model help us understand how much the share of votes against the government is expected to change when party size increases, but it also allows us to make predictions. 
+
+**According to our model, how often do parties with a seat share of 30% oppose the government on average? Please provide the answer in percent with two significant (non-zero) digits.**
+
+*(Hint: Note that the `predict()` function might be helpful for this task. You can re-run the regression model in the chunk below. Alternatively, the correct regression output is also already stored in an object called `lm_seatshare`)*
+
+```{r predict_sol, eval = F, echo = F}
+lm_seatshare <- lm(conflict_p ~ seatshare, data = df_opposition)
+
+predict(lm_seatshare, newdata = tibble(seatshare = .3)) %>% round(2)*100
+```
+
+```{r predict-setup}
+lm_seatshare <- lm(conflict_p ~ seatshare, data = df_opposition)
+```
+
+
+```{r predict, exercise=TRUE, exercise.setup = "predict-setup"}
+
+```
+
+```{r predict_q, echo = FALSE}
+question_text(
+  "Parties with a seat share of 30% oppose the government on average in __ percent of votes.",
+  answer("66", correct = T),
+  answer("65.61", correct = F, message = "That is too detailed. Please round the result to two meaningful digits."),
+  answer("0.66", correct = F, message = "Please provide the answer in percent."),
+  allow_retry = T
+)
+```
+
+
+## Submit
+
+```{r context="server"}
+learnrhash::encoder_logic(strip_output = TRUE)
+```
+
+```{r encode, echo=FALSE}
+learnrhash::encoder_ui(default_ui(url = "SomeURL"))
+```
+
+
+

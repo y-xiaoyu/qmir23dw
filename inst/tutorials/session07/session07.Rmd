@@ -1,0 +1,248 @@
+---
+title: "Session 07 - Multiple Linear Regression Analysis"
+output: 
+  learnr::tutorial:
+    progressive: true
+    allow_skip: false
+    css: "css/learnr-theme.css"
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(learnrhash)
+gradethis::gradethis_setup()
+
+library(tidyverse)
+library(broom)
+library(texreg)
+library(qmir22dw)
+data(df_opposition) 
+
+
+```
+
+## Warm-Up
+
+Before we start running regressions with multiple explanatory variables, let's recap why we might want to do this in the first place. 
+
+As discussed in class, one of the main reasons for multiple regression is to address concerns about omitted variable bias. If present, it implies that we systematically miss the true parameter in the population model when we run our statistical model. 
+
+**Choose the correct statement:**
+
+```{r assumptions_ovb, echo = FALSE}
+question(sprintf("Is our estimate of $\\beta_1$ biased, if we fail to include a variable that affects our outcome, $y$, but is not correlated with out variable of interest, $x_1$?"),
+  answer("Yes.", message = "A causal interpretation of $\\beta_1$ is based on the zero conditional mean assumption. Accordingly, unobserved factors and the variable of interest, $x_1$, are uncorrelated. This assumption is holding in the described scenario."),
+  answer("No.", correct = T, message = "Correct. Omitted variable bias only occurs if the omitted variable correlates with both our outcome, $y$, and the variable of interest, $x_1$."),
+  random_answer_order = TRUE,
+  allow_retry = T,
+  incorrect = "Hint: Have a look at the slides on omitted variable bias."
+)
+
+```
+
+
+## Getting to know your data
+
+You have to work again with the data on opposition parties in national European parliaments from Tuttnauer (2018).^[Tuttnauer, O. (2018) "If you can beat them, confront them: Party-level analysis of opposition behavior in European national parliaments". *European Union Politics*, 19(2), 278–298.] The data set is already preloaded into the environment and called `df_opposition`. You are already quite familiar with the data, so hopefully it won't take long for you to answer the following two questions.
+
+**What is the mean share of opposed votes (`conflict_p`) across all opposition parties and countries (in percent and rounded to two meaningful (integer) digits (e.g., 0.23, 4.5, 13))?**
+
+
+```{r mean_conflict_sol, echo = FALSE, eval=FALSE}
+mean(df_opposition$conflict_p) %>% round(2)*100
+```
+
+
+```{r mean_conflict, exercise = TRUE}
+
+```
+
+
+```{r mean_conflict_q, echo = FALSE}
+question_text("Enter the mean percentage share of opposed votes rounded to two meaningful digits:",
+  answer("56", correct = T),
+  answer("0.56", correct = F, message = "Provide your answer in percent."),
+  answer("0.55", correct = F, message = "Provide your answer in percent and rounded to two digits."),
+  answer("56.66", correct = F, message = "Too detailed. It is not really relevant whether the vote share is 0.01 % higher or lower in substantive terms. Therefore it suffices to report two non-zero digits in this case."),
+  allow_retry = T
+)
+```
+
+
+**Now that we know the average share of votes against the government, how many countries have an average opposition score higher than this mean?**
+
+```{r cntry_conflict_sol, echo = FALSE, eval=FALSE}
+avg_opp <- mean(df_opposition$conflict_p)
+
+df_opposition %>% 
+  group_by(country) %>% 
+  summarise(avg_opposition = mean(conflict_p)) %>% 
+  filter(avg_opposition > avg_opp) %>%
+  count()
+```
+
+
+```{r cntry_conflict, exercise = TRUE}
+
+```
+
+```{r cntry_conflict_q, echo = FALSE}
+question_text("Enter the number of countries with an average opposition score above the mean here:",
+  answer("7", correct = T),
+  answer("24", message = "You calculated the average opposition scores for parties (and not countries)."),
+  allow_retry = T
+)
+```
+
+
+
+## Multiple Regression
+
+Last week, we found that size of a party (`seatshare`) is associated with an increase in how often a party votes against the government (`conflict_p`). However, over the course of this week, you couldn't stop thinking about it and started fearing that there may be unobserved factors that confound the relationship between the two variables of interest both at the party level as well as at the system level. 
+
+Specifically, you are worried that larger parties are on average ideologically closer to government parties than smaller (fringe) parties. Moreover, it is possible that larger parties have more government experience and are, therefore, likely to behave differently vis-a-vis the government than smaller parties. 
+
+In addition, there may be party-system specific factors varying between countries that affect how party size and opposition to the government are related in our data. For example, the degree to which institutional arrangements allow opposition parties to influence decision-making, the general openness of the competition structure of a party system, the overall importance of the parliament for policy-making, the type of government the opposition parties are facing, as well as how high the threshold is to record voting behavior may be theoretically plausible factors that affect the relationship between party size and opposition behavior.
+
+Luckily, the data set by Tuttnauer (2018) includes variables that measure these potential confounders:
+
+* `abs_lrdiff`: Ideological distance from the government as the absolute difference between a party's left-right position and the size-weighted average position of the government coalition.
+* `ge`:  Government-experience value that ranges between 0 if the party has always been in opposition and 1 if the party has always been in government.
+* `inst_power`:  Institutional power of the opposition measuring the strength of the committee system on a scale from 0 to 7.
+* `y_openness`: Average number of distinct government compositions in the past 10 years.
+* `importance`: Index ranging between 0 (low-importance parliament) and 1 (high-importance parliament).
+* `govtype_mod`: A dummy (=1) for surplus coalitions, in contrast with minimal-winning ones (=0).
+* `record_threshold`:The percentage of MPs needed to call for a recorded vote (ranging between 0 and 0.3).
+
+**Run a regression of the conflict measure on seat share controlling for the above mentioned confounders.**
+
+```{r lm_1_sol, eval=FALSE, echo = FALSE}
+model <- lm(conflict_p ~ seatshare + abs_lrdiff + ge + inst_power + 
+              y_openness + importance + govtype_mod + record_threshold, data = df_opposition)
+knitreg(model)
+```
+
+```{r lm_1, exercise = TRUE}
+
+```
+
+**What is the the size of the estimate for seat share (rounded to two meaningful non-integer digits)?**
+
+```{r lm_1_q, echo = FALSE}
+question_text(
+  "The estimate for seatshare (rounded to two meaningful digits) is:",
+  answer("0.57", correct = T),
+  answer("57", correct = F, message = "Close, but this time you were actually supposed to report the size of the estimate without transforming it the into percentage share."),
+  allow_retry = T
+  )
+```
+
+## Prediction
+
+Let's use the model to calculate the predicted share of opposed votes for meaningful values that we are interested in. 
+
+**According to our model, how much more/less do parties with a seat share of 10% oppose the government on average in comparison to a party with a seat share of 30% holding all other variables at their mean/median? Please provide the answer in percent with two meaningful (integer) digits.**
+
+*You can re-run the regression model in the chunk below. Alternatively, the correct regression output is also already stored in an object called `out_multivar`.*
+
+```{r predict_sol, eval = F, echo = F}
+out_multivar <- lm(conflict_p ~ seatshare + abs_lrdiff + ge + inst_power + 
+              y_openness + importance + govtype_mod + record_threshold, data = df_opposition)
+
+df_scenario <- tibble(
+   seatshare = c(0.1, 0.3)
+  , abs_lrdiff = mean(df_opposition$abs_lrdiff)
+  , ge = mean(df_opposition$ge)
+  , inst_power = mean(df_opposition$inst_power)
+  , y_openness = mean(df_opposition$y_openness)
+  , importance = mean(df_opposition$importance)
+  , govtype_mod = median(df_opposition$govtype_mod)
+  , record_threshold = mean(df_opposition$record_threshold)
+)
+
+predict(out_multivar, newdata = df_scenario) %>% round(2)*100
+(predict(out_multivar, newdata = df_scenario)[1]-predict(out_multivar, newdata = df_scenario)[2]) %>% round(2)*100
+```
+
+```{r predict-setup}
+out_multivar <- lm(conflict_p ~ seatshare + abs_lrdiff + ge + inst_power + 
+              y_openness + importance + govtype_mod + record_threshold, data = df_opposition)
+```
+
+```{r predict, exercise=TRUE, exercise.setup = "predict-setup"}
+
+```
+
+<div id="predict-hint">
+**Hint:** The `predict()` function might be helpful for this task. Make sure you only set continuous variables to their mean when specifying the scenarios. Categorical/dummy variables should be set to their median value.
+</div>
+
+
+```{r predict_q, echo = FALSE}
+question_text(
+  "The difference in the share of votes opposing the government between parties with a seat share of 10% and 30% is __ percentage points.",
+  answer("11", correct = T),
+  answer("11.46", correct = F, message = "Close, but this is too detailed. Please provide the answer with two meaningful digits only."),
+  answer("0.11", correct = F, message = "Please provide the answer in percentage points."),
+  answer("12", correct = F, message = "Close. However, it seems as if you rounded the predicted values for the two scenarios first and then calculated the difference. Make sure to round your results only in the final step of your analysis -- so in this case after you calculated the difference."),
+  allow_retry = T
+)
+```
+
+## Interpreting binary variables
+
+Usually, we should be very carefully interpreting control variables by themselves, at least if we didn't spent much time thinking about potential confounders affecting the relationship between a particular control variable and the outcome of interest. For more details on this topic, check out this great overview essay, "The Causal Interpretation of Estimated Associations in Regression Models", by Keele et al. (2019) which is available here: https://doi.org/10.1017/psrm.2019.31
+
+
+**In this case, however, you are required to make an exception and provide an interpretation of the estimate for `govtype_mod` from the regression model that you ran above.**
+
+Recall how the explanatory variable of interest is coded: It is a dummy variable coded as 1 for surplus coalitions and 0 for minimal-winning coalitions.
+
+*More than one answer can be correct. You can use the following code chunk to re-run the model. Alternatively, the correct regression output is also already stored in an object called `out_multivar`.*
+
+```{r lm2, exercise=TRUE, exercise.setup = "predict-setup"}
+
+```
+
+```{r qlm_1_q, echo = FALSE}
+question("What does the estimated regression model tell us about the relationship between government coalition types (`govtype_mod`) and the share of votes opposed to the government?",
+  answer("A one unit increase in `govtype_mode` causes a decrease of about 0.04 percentage points in votes against the government, holding everything else contant.", correct = F, message = "Be very careful to make causal statements when using regression analysis without a randomization strategy or thorougly testing for omitted variable bias. Moreover, you are dealing with a dummy variable so it is not wrong per se but generally recommendable to provide interpretations for the respective category values instead of only talking about what happens after one 'unit' increases."),
+  answer("Opposition parties facing a surplus coalition government vote on average 0.04 percentage points less often against the government than opposition parties facing a minimal-winning coalition, holding everything else constant.", correct = T),
+  answer("Opposition parties facing a minimal-coalition government vote on average 0.04 percentage points less often against the government than opposition parties facing a surplus coalition government, holding everything else constant.", correct = F, message = "Make sure that your reference category is correct."),
+  answer("Opposition parties facing a minimal-coalition government vote against the government in 83% of the votes on average, setting all other variables to zero.", correct = T, message = "Correct. Good job not neglecting the fact that the intercept has a substantive interpretation, too. It is the expected value when all variables (including `govtype_mod`) are set to zero."),
+  random_answer_order = TRUE,
+  allow_retry = T
+)
+
+```
+
+## Model assumptions
+
+It's important to keep in mind what we are assuming about the models that we run on our data to **infer** what is going on in the real world.
+
+```{r assumptions_causal, echo = FALSE}
+question("Which key assumption is required to interpret an estimated relationship between an explanatory variable and the dependent variable as causal?",
+  answer("Unobserved factors have an average of zero and do not depend on the explanatory variable.", correct = T),
+  answer("The parameters are linear.", message = "This is an important assumption of the  'linear' model that we are building, however, not sufficient for a causal interpretation of the estimates."),
+  answer("There is a correlation between the dependent and independent variable.", message = "While correlation is a necessary condition to find a causal effect, it is certainly not sufficient."),
+  answer("There is no measurement error in the dependent variable.", message = "A nice feature of regression analysis is that (random) measurement error in the dependent variable does not bias the regression estimates because it does not change the average values of a variable."),
+  random_answer_order = TRUE,
+  allow_retry = T,
+  incorrect = "Hint: Have a look at the slides on the zero conditional mean assumption."
+)
+
+```
+
+## Submit
+
+```{r context="server"}
+learnrhash::encoder_logic(strip_output = TRUE)
+```
+
+```{r encode, echo=FALSE}
+learnrhash::encoder_ui(default_ui(url = "someURL"))
+```
+
+
+
