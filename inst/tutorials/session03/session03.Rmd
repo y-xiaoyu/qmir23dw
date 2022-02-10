@@ -14,15 +14,16 @@ library(learnr)
 library(learnrhash)
 library(tidyverse)
 library(gradethis)
+library(qmir22dw)
 gradethis::gradethis_setup()
 
 rm(list=ls())
 ## Data
 
 #load("./data_raw/df_learnr03_ep_elections.rda")
-#usethis::use_data(ep_elections, internal = F)
+#usethis::use_data(ep_elections, internal = F, overwrite = T)
 
-data(ep_elections.rda)
+data(ep_elections)
 
 ```
 
