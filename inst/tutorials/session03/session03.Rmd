@@ -1,0 +1,358 @@
+---
+title: "Week 03 - Data Wrangling I"
+output: 
+  learnr::tutorial:
+    progressive: true
+    allow_skip: false
+    css: "../../../css/learnr-theme.css"
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+## Packages
+library(learnr)
+library(learnrhash)
+library(tidyverse)
+gradethis::gradethis_setup()
+
+
+## Data
+
+#load("../../../data/df_learnr03_ep_elections.rda") # for local testing
+# usethis::use_data("./data/df_learnr03_ep_elections.rda", ep_elections, internal = TRUE)
+```
+
+## Introduction
+
+This week, we have started to **wrangle some data**! We learned how to subset data sets to the variables and observations that we need for our analyses, how to add new variables, order observations, how to calculate summary statistics and much more.
+
+In this tutorial, you'll refresh and review what we have learned this week.
+
+### Packages
+
+For the following exercises, you'll need the **tidyverse** package, so go ahead and load it:
+
+```{r load-packages, exercise=TRUE}
+
+```
+
+```{r load-packages-solution}
+library(tidyverse)
+```
+
+```{r load-packages-check}
+grade_this_code("The tidyverse is now loaded!")
+```
+
+## Data
+
+The data set for this tutorial (`ep_elections`) contains information on voter turnout and the number of total votes cast in elections to the European Parliament.
+
+Below you find an overview of the data set.
+
+| Variable name |  Description
+|:--------------|:-------------
+| `country` | Country name
+| `election_type` | Type of election
+| `year` | Year of election
+| `voter_turnout` | Voter turnout
+| `total_vote` | Total number of voters who have turned out
+
+### First look at the data
+
+You can take a peek at the data using the `glimpse()` function in the box below.
+
+```{r glimpse-data, exercise=TRUE}
+glimpse(ep_elections)
+```
+
+###
+
+```{r q1, echo=FALSE}
+question("As you have just seen, the data set contains information on countries, election type, years, voter turnout and the total number of votes. How many columns does this data set have?",
+         answer("One"),
+         answer("Five", correct = TRUE),
+         answer("Six"),
+         answer("Depends on the number of countries and years in the data set"),
+         allow_retry = TRUE,
+         random_answer_order = FALSE,
+         incorrect = "Not quite. If you need help, check Wickham/Grolemund (2017) Chapter 3."
+         )
+```
+
+## Exercises
+
+###
+
+```{r q2, echo=FALSE}
+question("Which of the following functions allows you to pick variables based on their name?",
+         answer("select()", correct = TRUE),
+         answer("filter()", message = "filter() allows you to select observations, not variables. Check Wickham/Grolemund (2017) Chapter 5 or the lecture and lab materials for more information and examples."),
+         allow_retry = TRUE,
+         random_answer_order = TRUE
+         )
+```
+
+###
+
+```{r q3, echo=FALSE}
+question("What does a relational operator do?",
+         answer("It tests the relationship between entities (values etc.).", correct = TRUE),
+         answer("It checks whether vectors contain NAs."),
+         answer("It executes code chunks that are related to one another."),
+         answer("It links different data sets."),
+         allow_retry = TRUE,
+         random_answer_order = TRUE,
+         incorrect = "Not quite. If you need help, check Wickham/Grolemund (2017) Chapter 5 or the lecture material."
+         )
+```
+
+###
+
+```{r q4, echo=FALSE}
+question("What does x | y mean?",
+         answer("x or y", correct = TRUE),
+         answer("x not y", 
+                message = "x not y would be written as x & !y. Check Wickham/Grolemund (2017) Chapter 5 or the lecture material for more information."),
+         answer("x and y", 
+                message = "x and y would be written as x & y. Check Wickham/Grolemund (2017) Chapter 5 or the lecture material for more information."),
+         allow_retry = TRUE,
+         random_answer_order = TRUE
+         )
+```
+
+###
+
+```{r q5, echo=FALSE}
+question("What does the pipe operator do?",
+         answer("It specifies a sequence of dplyr functions.", correct = TRUE),
+         answer("It calculates descriptive statistics."),
+         answer("It imports data sets."),
+         allow_retry = TRUE,
+         random_answer_order = TRUE,
+         incorrect = "Not quite. If you need help, check Wickham/Grolemund (2017) Chapter 18 or the lecture material."
+         )
+```
+
+###
+
+```{r q6, echo=FALSE}
+question("Which dplyr function allows you to add a new variable to all observations in your data set?",
+         answer("mutate()", 
+                correct = TRUE),
+         answer("summarise()", 
+                message = "summarise() calculates summary statistics by aggregating your data set. The resulting variable is therefore not added to all observations. Check out Wickham/Grolemund (2017) Chapter 5 or the lecture and lab materials for more information and examples."),
+         answer("filter()", message = "filter() picks observations based on their value(s). Check out Wickham/Grolemund (2017) Chapter 5 or the lecture and lab materials for more information and examples."),
+         answer("add()", message = "add() does not exist. Check out Wickham/Grolemund (2017) Chapter 5 or the lecture and lab materials for more information and examples of the existing dplyr functions."),
+         allow_retry = TRUE,
+         random_answer_order = TRUE
+         )
+```
+
+###
+
+```{r q7, echo=FALSE}
+question("You have a data set that contains the following variables: a country ID variable, a year variable and a voter turnout variable. You would like to add a variable on the median value of voter turnout per year. What do you do?",
+         answer("data %>% group_by(year) %>% mutate(median_voter_turnout = median(voter_turnout))", 
+                correct = TRUE),
+         answer("data %>% group_by(country, year) %>% mutate(median_voter_turnout = median(voter_turnout))", 
+                message = "This code snippet would calculate the median voter turnout by country and year, we want the value to be calculated by year across all countries, however."),
+         answer("data %>% group_by(year) %>% mutate(median_voter_turnout = max(voter_turnout))", 
+                message = "This code snippet would assign the maximum value of voter turnout for each year to the new variable instead of the median voter turnout."),
+         allow_retry = TRUE,
+         random_answer_order = TRUE
+         )
+```
+
+###
+
+```{r q8, echo=FALSE}
+question("The standard deviation describes...",
+         answer("how spread out the values are from the mean on average.",
+                correct = TRUE),
+         answer("how spread out the values are from the median on average."),
+         answer("how confident we are that we measured the mean correctly."),
+         allow_retry = TRUE,
+         random_answer_order = TRUE,
+         incorrect = "Not quite. If you need help, check the lab material or Imai (2017) Chapter 2.6."
+         )
+```
+
+###
+
+Now, you'll begin to work with the `ep_elections` data.
+
+It seems that something went wrong with the variable `voter_turnout` when importing the data. Turnout should have been measured in percent. Have a look at the variable; then, divide it by 100 and save the result in a new variable called `voter_turnout_pc`. 
+
+```{r exercise1, exercise=TRUE}
+
+```
+
+###
+
+Then, calculate the average `voter_turnout_pc` per country:
+
+```{r create-voter-turnout-pc-variable}
+ep_elections <- mutate(ep_elections, voter_turnout_pc = voter_turnout / 100)
+```
+
+```{r exercise2, exercise=TRUE, exercise.setup = "create-voter-turnout-pc-variable"}
+
+```
+
+<div id="exercise2-hint">
+**Hint:** You may want to use **dplyr**'s `group_by()`, `summarise()`, `filter()` and `arrange()` functions.
+</div>
+
+```{r exercise2-sol, echo=FALSE, eval=FALSE}
+# q9
+ep_elections %>%
+  group_by(country) %>%
+  summarise(mean = mean(voter_turnout_pc, na.rm = TRUE)) %>%
+  filter(country == "Germany")
+
+# or (semi-correct)
+ep_elections %>%
+  filter(country == "Germany") %>%
+  summarise(mean = mean(voter_turnout_pc, na.rm = TRUE))
+
+# q10
+ep_elections %>%
+  group_by(country) %>%
+  summarise(mean = mean(voter_turnout_pc, na.rm = TRUE)) %>%
+  filter(mean == min(mean))
+
+# or
+ep_elections %>%
+  group_by(country) %>%
+  summarise(mean = mean(voter_turnout_pc, na.rm = TRUE)) %>%
+  arrange(mean)
+```
+
+```{r q9, echo=FALSE}
+question_text(
+  "What is the average voter turnout in Germany? Enter the number, rounded to two digits after the decimal.",
+  answer("53.98", correct = TRUE),
+  allow_retry = TRUE,
+  incorrect = "Not quite. Have you entered the number with two digits after the decimal?"
+)
+```
+
+```{r q10, echo=FALSE}
+question_text(
+  "And which country has the lowest average voter turnout?",
+  answer("Slovakia", correct = TRUE),
+  allow_retry = TRUE,
+  incorrect = "Not quite. Have you spelled the country name correctly?"
+)
+```
+
+###
+
+Next, calculate the number of eligible voters for each election in each country based on the variables `voter_turnout_pc` and `total_vote`. Add the result as a new variable called `eligible_voters`. The formula to calculate the number of eligible voters is a simple rule of three. Keep in mind that the variable `voter_turnout_pc` is measured in percent. 
+
+```{r exercise3-sol, echo=FALSE, eval=FALSE}
+ep_elections <- ep_elections %>%
+  group_by(country, year) %>%
+  mutate(eligible_voters = (total_vote/voter_turnout_pc) * 100) 
+
+ep_elections %>% filter(country == "Germany" & year == "2009")
+```
+
+```{r exercise3, exercise=TRUE, exercise.setup="create-voter-turnout-pc-variable"}
+
+```
+
+<div id="exercise3-hint">
+**Hint:** The formula to calculate the number of eligible voters is `(total_vote/voter_turnout_pc) * 100`.
+</div>
+
+```{r q11, echo=FALSE}
+question_text(
+  "How many voters have been eligible to vote in the European Parliament elections in Germany in 2009? Enter the number without separators (such as . or ,) and round to the next lowest integer.",
+  answer("62222357", correct = TRUE),
+  allow_retry = TRUE,
+  incorrect = "Not quite. Are you sure you have specified the formula correctly?"
+
+)
+
+```
+
+## Submit
+
+```{r context="server"}
+learnrhash::encoder_logic()
+```
+
+```{r encode, echo=FALSE}
+learnrhash::encoder_ui(default_ui(url = ""))
+```
+
+```{r setup, include=FALSE}
+library(learnr)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+## Topic 1
+
+### Exercise 
+
+*Here's a simple exercise with an empty code chunk provided for entering the answer.*
+
+Write the R code required to add two plus two:
+
+```{r two-plus-two, exercise=TRUE}
+
+```
+
+### Exercise with Code
+
+*Here's an exercise with some prepopulated code as well as `exercise.lines = 5` to provide a bit more initial room to work.*
+
+Now write a function that adds any two numbers and then call it:
+
+```{r add-function, exercise=TRUE, exercise.lines = 5}
+add <- function() {
+  
+}
+```
+
+## Topic 2
+
+### Exercise with Hint
+
+*Here's an exercise where the chunk is pre-evaulated via the `exercise.eval` option (so the user can see the default output we'd like them to customize). We also add a "hint" to the correct solution via the chunk immediate below labeled `print-limit-hint`.*
+
+Modify the following code to limit the number of rows printed to 5:
+
+```{r print-limit, exercise=TRUE, exercise.eval=TRUE}
+mtcars
+```
+
+```{r print-limit-hint}
+head(mtcars)
+```
+
+### Quiz
+
+*You can include any number of single or multiple choice questions as a quiz. Use the `question` function to define a question and the `quiz` function for grouping multiple questions together.*
+
+Some questions to verify that you understand the purposes of various base and recommended R packages:
+
+```{r quiz}
+quiz(
+  question("Which package contains functions for installing other R packages?",
+    answer("base"),
+    answer("tools"),
+    answer("utils", correct = TRUE),
+    answer("codetools")
+  ),
+  question("Which of the R packages listed below are used to create plots?",
+    answer("lattice", correct = TRUE),
+    answer("tools"),
+    answer("stats"),
+    answer("grid", correct = TRUE)
+  )
+)
+```
