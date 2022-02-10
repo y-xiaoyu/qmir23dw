@@ -1,5 +1,5 @@
 ---
-title: "Session 12- Logistic Regression"
+title: "Session 13 - Causal Inference"
 output: 
   learnr::tutorial:
     progressive: true
@@ -14,158 +14,200 @@ library(learnrhash)
 library(tidyverse)
 library(highlight)
 library(gradethis)
-library(texreg)
 
 gradethis::gradethis_setup()
+data(df_learnr14)
 
-load("./data_raw/df_learnr15.rda")
-df_logistic <- df_learnr15
-usethis::use_data(df_logistic, internal = F, overwrite = TRUE)
+load("./data_raw/df_learnr14.rda")
+df_ci <- df_learnr14
+usethis::use_data(df_ci, internal = F, overwrite = TRUE)
 
 ```
 
 ## Introduction
 
-Welcome to the last tutorial of the Quantitative Methods in International Relations course! Today we will replicate some of the results of Sarah Hobolt\'s (2016) paper: \"The Brexit vote: a divided nation, a divided continent\". We will use different survey items to test hypotheses about the decision to vote "Leave" in the Brexit referendum. These variables are **categorical**, except for the `age`-variable which is numeric. 
-
-As always, we will start with some knowledge questions and then continue with some coding exercises. Have fun!
-
-
+Welcome back to the tutorial for week 14! It is the second to last tutorial and as always we will start with some knowledge questions to repeat the lecture. In the coding exercises, you will look at the support for the European Union among the citizens of member-states. Good luck and have fun!
 
 ## Knowledge Questions
 
 ```{r q1, echo = FALSE}
-question("Why is it useful to rely on logistic regression models for our referendum vote variable?",
-  answer("Because our dependent variable is binary and our predicted values may fall outside the logical boundaries of 0 and 1 if we use OLS.", correct = T),
-  answer("Because the variance of our dependent variable is not large enough."),
-  answer("Because we cannot calculate a mean for our dependent variable."),
-  answer("Because the standard deviation of our dependent variable equals its mean."),
+question("What is the general problem with causal inference for observational data?",
+  answer("The observed difference in outcomes might be caused by confounders instead of the treatment.", correct = T),
+  answer("The treatment does not work because of confounders.", message = "Think about the role of confounders in analyses of observational data. The treatment may work, but we do not know what influence the confounders have had!"),
+  answer("Observational data does not tell us which unit is from the treatment and the control group."),
   random_answer_order = TRUE,
   allow_retry = T,
-  incorrect = "Hint: Remember what we use OLS for and what our regression line would predict for different kinds of variables."
+  incorrect = "Hint: Check the lecture materials."
 )
 ```
 
 ```{r q2, echo = FALSE}
-question("Why do we need a link function for logistic regression analyses?",
-  answer("Because we want to predict probabilities that only range between 0 and 1.", correct = T),
-  answer("Because the variance needs to be logged in order to obtain predictions."),
-  answer("Because logistic regression models analyze the responses of people participating in surveys.", message = "They do sometimes, but that does not affect the need for a link-function."),
-  answer("Because that makes the derivation of the maximum likelihood easier."),
+question("What is the identification strategy for difference-in-differences designs?",
+  answer("The treatment group`s change over time in absence of the treatment is equal to the control group`s change over time.", correct = T),
+  answer("The outcome for the treatment group in absence of the treatment is identical to the outcome of the control group.", message = ""),
+  answer("The average causal effect is the difference in the treatment group's outcome before and after the treatment.", message = "What role does the control group play here?"),
   random_answer_order = TRUE,
   allow_retry = T,
-  incorrect = "Hint: Consider the special feature of dependent variables in logistic regressions."
+  incorrect = "Hint: Check the lecture materials."
 )
 ```
 
-## Coding Exercises
+## Difference-in-Differences
 
-Now let us have a look at the Brexit referendum data again (the data is stored as `df_logistic`). We want to compare some characteristics of the participants in the survey. In a first step, we want you to calculate the average of men in the data set and the average age of women in the data set. Then subtract the average age of women from that of the men. What is the difference in their ages?
-
-
-
+Take a look at our data-set `df_learnr14`. What is the average degree of anti-authoritarianism (`cntrymean_antiauth`) among EU members(`EU`) in 2008-2010 (`wave`). Please round to the second decimal.
 
 ```{r exercise1, exercise = TRUE}
 
 ```
 
 ```{r q3, echo = FALSE}
-question_text("What is the age difference between men and women? Please round to two decimals",
-  answer("1.7", correct = T),
-  answer("1.70", correct = T),
+question_text("What is the average degree of anti-authoritarianism among EU members in 2008-2010 ('cntrymean_antiauth').",
+  answer("75.69", correct = T),
+  answer("75.7", correct = T),
+  answer("75.70", correct = T),
   allow_retry = TRUE,
   incorrect = "Hint: Select the relevant observations with 'filter()' and use the 'mean()' command to calculate the average."
 )
 ```
-"
-Now calculate the mean age of voters who intend to vote "leave" (`LeaveVote == 1`) and those who intend to vote "remain" (`LeaveVote == 0`).
+
+```{r q4, echo = FALSE}
+question_text("And what about the average degree of anti-authoritarianism among non-EU members in the same time frame?",
+  answer("67.2", correct = T),
+  answer("67.18", correct = T),
+  answer("67.20", correct = T),
+  allow_retry = TRUE,
+  incorrect = "Hint: Select the relevant observations with \"filter()\" and use the \"mean()\" command to calculate the average."
+
+)
+```
+
+In the next few tasks, you will go through the steps necessary to calculate the causal effect of EU membership on the anti-authoritarian attitudes of the countries` citizens using a difference-in-differences design. In particular, you will calculate the causal effect of EU-accession on anti-authoritarian values for Romania (treatment unit) compared to Albania (control unit) assuming that anti-authoritarian attitudes would have developed similarly in both countries in the absence of Romania's EU accession.
+
+Calculate the change in anti-authoritarian values for Romania between 2008-2010 and 1999-2004. Round to two digits after the decimal. 
+
 
 ```{r exercise2, exercise = TRUE}
 
 ```
 
-```{r q4, echo = FALSE}
-question_text("What is the age difference between leave and remain voters? Please round to two decimals.",
-  answer("8.38", correct = T),
+```{r q5, echo = FALSE}
+question_text("What is the change in anti-authoritarian values for Romania between 2008-2010 and 1999-2004. Round to two digits after the comma.",
+ # answer(0.32, correct = T),
+  answer("0.32", correct = T),
   allow_retry = TRUE,
-  incorrect = "Hint: Select the relevant observations with `filter()` and use the `median()` command to calculate the median."
+  incorrect = "Hint: Following what we have done in the lab, calculate the values of \"cntrymean_antiauth\" for Romania for these two time points and subtract them from each other."
 )
 ```
 
-Now calculate a logit regression trying to explain `LeaveVote` with `age`, `female`, `edlevel`, `hhincome`, `EuropeanIdentity`, `EnglishIdentity` and `BritishIdentity`. Use the `glm()` command and don't forget to specify the link function. What is the coefficient for `EuropeanIdentity`? Round to two decimals.
+Now, calculate the change in anti-authoritarian values for Albania between 2008-2010 and 1999-2004. Round to two digits after the comma.
 
 ```{r exercise3, exercise = TRUE}
 
 ```
 
-```{r q5, echo = FALSE}
-question_text("What is the coefficient for `EuropeanIdentity`? Rond to two decimals.",
-  answer("-0.80", correct = T),
-  allow_retry = TRUE,
-  incorrect = "Hint: Consider what we did in the lab. The regression command is similar, just add the new independent variables and don't include some that we do not use anymore."
-)
-```
-
 ```{r q6, echo = FALSE}
-question("What does the coefficient for `EuropeanIdentity` tell us?",
-  answer("That there is a negative relationship with voting Leave", correct = T),
-  answer("That there is a positive relationship with voting Leave"),
-  random_answer_order = TRUE,
-  allow_retry = T,
-  incorrect = "Hint: Consider the lecture material and what you know about the signs of coefficients."
+question_text(
+  "What is the change in anti-authoritarian values for Albania between 2008-2010 and 1999-2004. Round to two digits after the comma.",
+ # answer(-4.77, correct = T),
+  answer("-4.77", correct = T),
+  allow_retry = TRUE,
+  incorrect = "Hint: Following what we have done in the lab, calculate the values of \"cntrymean_antiauth\" for Albania for these two time points and subtract them from each other."
 )
 ```
 
-## Prediction
 
-Now, let\'s calculate predicted probabilities. You can use the model below!
-```{r , eval = F, echo }
-model <- glm(LeaveVote ~ age + female + edlevel + hhincome + EuropeanIdentity +
-               EnglishIdentity + BritishIdentity,
-             data = df_logistic,
-             family = binomial(link = "logit")) 
+## Calculating the ATE
+
+What is the average treatment effect of EU accession for Romania? Based on the two previous exercises you already have everything you need! Alternatively, you can use the code below to calculate the difference between waves (`difference_within`) for the two countries. They will be stored in two objects (`albania`and `romania`). Do not forget to round to two digits after the comma.
+
+```{r set-up}
+
+
+albania <- df_learnr14 %>% 
+    # select relevant variables
+  select(countryname, wave, cntrymean_antiauth) %>% 
+  # filter for treatment and control cases
+  filter(countryname == "Albania") %>% 
+  # filter for pre and post treatment period
+  filter(wave == "1999-2004" | wave == "2008-2010") %>% 
+  # spread out the year variable to make calculation easier
+  spread(wave, cntrymean_antiauth) %>%
+    # rename year values
+  rename("wave2" = `2008-2010`,
+         "wave1" = `1999-2004`) %>%
+  # Calculate difference within units
+  mutate(difference_within = wave2 - wave1)
+
+
+
+romania <- df_learnr14 %>% 
+    # select relevant variables
+  select(countryname, wave, cntrymean_antiauth) %>% 
+  # filter for treatment and control cases
+  filter(countryname == "Romania") %>% 
+  # filter for pre and post treatment period
+  filter(wave == "1999-2004" | wave == "2008-2010") %>% 
+  # spread out the year variable to make calculation easier
+  spread(wave, cntrymean_antiauth) %>%
+    # rename year values
+  rename("wave2" = `2008-2010`,
+         "wave1" = `1999-2004`) %>%
+  # Calculate difference within units
+  mutate(difference_within = wave2 - wave1)
+
 ```
-
-Calculate the predicted probability and the surrounding uncertainties of voting `Leave` for individuals with the highest value for `EuropeanIdentity`, holding all other variables at their means or medians. Remember, that the variables (apart from the `age`-variable) are questionnaire variables. Though they are numeric, the answer options have been categorical. What is the predicted probability to vote `Leave` for such voters? Round to two decimals.
-
 
 ```{r exercise4, exercise = TRUE}
 
-```
-
-```{r q7, echo = FALSE}
-question_text("  What is the predicted probability to vote `Leave` for such voters? Round to two decimals.",
-  answer("0.06", correct = T),
-  allow_retry = TRUE,
-  incorrect = "Hint: Start with the lab code and extend the scenarios to the new variables we included. In case you received a prediction of 0.049/0.05, make sure that you set the questionnaire items to their medians."
-)
-```
-
-Now, calculate predicted probabilities and the surrounding uncertainties, this time for the lowest value of `EuropeanIdentity`, holding everything else at its means or medians. What is the predicted probability for those individuals? Again, round to two decimals.
-
-```{r exercise5, exercise = TRUE}
 
 ```
 
 ```{r q8, echo = FALSE}
-question_text("What is the predicted probability for those individuals? Again, round to two decimals.",
-  answer("0.88", correct = T),
+question_text(
+  "What is the average treatment effect of EU accession for Romania? Round to two digits after the comma.",
+#  answer(5.09, correct = T),
+  answer("5.09", correct = T),
   allow_retry = TRUE,
-  incorrect = "Hint: Same as before, only the value for `EuropeanIdentity` has to be changed. In case you received a prediction of 0.86, make sure that you set the questionnaire items to their medians."
+  incorrect = "Hint: The average treatment effect for the treated (in this case, Romania) is the difference between the change in outcomes for the treatment unit (Romania) and the change in outcomes for the control unit (Albania)."
 )
 ```
 
+
 ```{r q9, echo = FALSE}
-question("What do these predictions tell you?",
-  answer("People who identify with Europe a lot have a lower probability of voting Leave than those who do not, holding everything else at their respective mean or median.", correct = T),
-  answer("People who identify with Europe a lot have a lower probability of voting Leave than those who do not."),
-  answer("We cannot say anything about the relationship between high and low identification with Europe and voting Leave because the difference is not statistically significant."),
-  answer("People who identify with Europe a lot have a higher probability of voting Leave than those who do not."),
+question("Does this mean that anti-authoritarian attitudes in Romania ... due to EU accession?",
+  answer("increased", correct = T),
+  answer("decreased"),
   random_answer_order = TRUE,
   allow_retry = T,
-  incorrect = "Hint: Compare the predicted probabilities and the uncertainty around them."
+  incorrect = "Hint: Think about what the treatment effect means."
 )
 ```
+
+## Regression Difference-in-Differences
+
+In a final step, we want you to analyze a difference-in-differences regression model. The treatment group and treatment time are already specified for you in the next chunk. 
+
+
+```{r exercise5, exercise = TRUE}
+
+did_data <- df_learnr14 %>% tibble() %>%
+  filter(countryname == "Romania" | countryname == "Albania" | countryname == "Finland" | countryname == "Ukraine" | countryname == "Switzerland") %>%
+  mutate(treatment_time = ifelse(wave == "2008-2010", 1, 0),
+         treatment_group = ifelse(countryname == "Romania", 1, 0))
+
+```
+
+```{r q10, echo = FALSE}
+question_text(
+  "What is the average treatment effect of EU accession in the regression model? Please round to two digits after the decimal",
+  answer("-8.23", correct = T),
+  allow_retry = TRUE,
+  incorrect = "Hint:Have you specified the data correctly?"
+)
+```
+
+
+
 
 ## Submit
 
@@ -174,5 +216,5 @@ learnrhash::encoder_logic()
 ```
 
 ```{r encode, echo=FALSE}
-learnrhash::encoder_ui(default_ui(url = ))
+learnrhash::encoder_ui(default_ui(url =""))
 ```

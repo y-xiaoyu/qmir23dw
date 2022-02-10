@@ -18,8 +18,8 @@ gradethis::gradethis_setup()
 
 ## Data
 
-load("./data_raw/df_learnr05_ep_elections.rda")
-usethis::use_data(ep_elections, internal = F, overwrite = TRUE)
+#load("./data_raw/df_learnr05_ep_elections.rda")
+#usethis::use_data(ep_elections, internal = F, overwrite = TRUE)
 
 
 ```
