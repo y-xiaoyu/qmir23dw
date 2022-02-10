@@ -1,5 +1,5 @@
 ---
-title: "Session 11 - Time-Series Cross-Sectional Analysis"
+title: "Session 11 - Causal Inference"
 output: 
   learnr::tutorial:
     progressive: true
@@ -11,189 +11,201 @@ runtime: shiny_prerendered
 ```{r setup, include=FALSE}
 library(learnr)
 library(learnrhash)
-library(texreg)
-library(qmir22dw)
-gradethis:: gradethis_setup()
-
 library(tidyverse)
+library(highlight)
+library(gradethis)
 
-load("./data_raw/df_learnr12.rda")
-df_tscs <- df_learnr12
-usethis::use_data(df_tscs, internal = F, overwrite = TRUE)
+gradethis::gradethis_setup()
+data(df_learnr14)
 
-#load("df_learnr12.rda") # for local testing
+load("./data_raw/df_learnr14.rda")
+df_ci <- df_learnr14
+usethis::use_data(df_ci, internal = F, overwrite = TRUE)
+
 ```
-
 
 ## Introduction
 
-Welcome to this week's learnr-exercises! In today's tutorial you will run a pooled model, a fixed-effects model, compare the results, and predict values for Japan and Uruguay! Before we start modeling, though, let's repeat some key contents of the lecture. 
+Welcome back to the tutorial for week 14! It is the second to last tutorial and as always we will start with some knowledge questions to repeat the lecture. In the coding exercises, you will look at the support for the European Union among the citizens of member-states. Good luck and have fun!
+
+## Knowledge Questions
 
 ```{r q1, echo = FALSE}
-question("Why does it make sense to use a TSCS model?",
-  answer("To adress concerns about omitted variable bias", correct = T),
-  answer("To account for potential exogenous shocks", correct = T),
-  answer("To deal with NAs in our data set"),
-  answer("To incorporate unit-specific, time-varying characteristics in our model"),
-  random_answer_order = F,
-  allow_retry = T,
-  incorrect = "Hint: You may want to check the lecture materials."
-)
-```
-
-```{r q2, echo = FALSE}
-question("What is commonly **not** constant within units over time?",
-  answer("The electoral system", message = "How often has the electoral system in your home-country changed in your lifetime?"),
-  answer("The unemployment rate", correct = T),
-  answer("Culture", message = "Though you may argue that culture is everchanging and subject to the understanding of the individual, for an FE-regression we may assume that it is somewhat constant over time."),
-  random_answer_order = TRUE,
-  allow_retry = T,
-  incorrect = "Hint: Think about how much variation there is in each answer option."
-)
-```
-
-```{r q3, echo = FALSE}
-question("When may we want to use a two-way FE model?",
-  answer("When we want to test two competing explanations", message = "We can do this with or without a fixed effect!"),
-  answer("When we want to account for two variables that are constant over time", message = "Two variables that are constant over time, but differ from unit to unit would be covered with a unit-fixed effect."),
-  answer("When we want to account for differences between units that are constant over time and for exogenous shocks that affect all units simultaneously", correct = T),
-  random_answer_order = TRUE,
-  allow_retry = T,
-  incorrect = "Hint: You may want to check the lecture materials."
-)
-```
-
-```{r q4, echo = FALSE}
-question("What happens when we use a unit-fixed effect?",
-  answer("It changes the intercept for each unit", correct = T),
-  answer("It changes the slope for each unit"),
-  answer("It runs a separate model for each unit"),
+question("What is the general problem with causal inference for observational data?",
+  answer("The observed difference in outcomes might be caused by confounders instead of the treatment.", correct = T),
+  answer("The treatment does not work because of confounders.", message = "Think about the role of confounders in analyses of observational data. The treatment may work, but we do not know what influence the confounders have had!"),
+  answer("Observational data does not tell us which unit is from the treatment and the control group."),
   random_answer_order = TRUE,
   allow_retry = T,
   incorrect = "Hint: Check the lecture materials."
 )
 ```
 
-
-## Regression Exercises
-
-Góméz-Díaz and Góméz-Díaz (2020) have argued that prolonged membership in the European Union leads to an increase in regional authority in different member-states. However, they also include a variable for the duration of World Bank membership. In the following, we will focus on the effect of World Bank membership on sub-national authority. In a final step we will calculate predicted values for Japan and Uruguay.
-
-In the following exercises you will need these variables:
-
-| Variable name |  Description
-|:--------------|:-------------
-| `n_RAI` | The dependent variable. Measures the regional authority
-| `length_EU` |  Duration of EU membership in years
-| `length_world` | Duration of World Bank membership in years
-| `democ` | Polity2 democracy index
-| `gdp_capita` | Gross domestic product per capita
-| `population_size` | Size of population
-| `nationalization` | Nationalization of the party system
-| `country_name` | Name of the country
-
-
-### Preparing the data and running our first model.
-
-
-Let's take a look at our data `df_tscs`. In the first step, we want you to run a pooled model using the following variables: `n_RAI`, `length_EU`, `length_world`, `democ`, `gdp_capita`, `population_size`, and `nationalization`.
-
-
-```{r exercise1, exercise = TRUE}
-# Let's run our first model and call it pooled_model
-
-```
-
-```{r q5, echo = FALSE}
-question_text("What is the coefficient for the duration of World Bank membership (`length_world`) in the pooled model? Round the coefficient to two digits after the decimal.",
-  answer("-0.04", correct = T),
-  allow_retry = TRUE,
-  incorrect = "Hint: Have you rounded correctly?"
+```{r q2, echo = FALSE}
+question("What is the identification strategy for difference-in-differences designs?",
+  answer("The treatment group`s change over time in absence of the treatment is equal to the control group`s change over time.", correct = T),
+  answer("The outcome for the treatment group in absence of the treatment is identical to the outcome of the control group.", message = ""),
+  answer("The average causal effect is the difference in the treatment group's outcome before and after the treatment.", message = "What role does the control group play here?"),
+  random_answer_order = TRUE,
+  allow_retry = T,
+  incorrect = "Hint: Check the lecture materials."
 )
 ```
 
+## Difference-in-Differences
 
-Now run the same model, but include a fixed-effect for the unit. Our unit is the country (`country_name`)`. Let's call this model "fe_model".
+Take a look at our data-set `df_learnr14`. What is the average degree of anti-authoritarianism (`cntrymean_antiauth`) among EU members(`EU`) in 2008-2010 (`wave`). Please round to the second decimal.
+
+```{r exercise1, exercise = TRUE}
+
+```
+
+```{r q3, echo = FALSE}
+question_text("What is the average degree of anti-authoritarianism among EU members in 2008-2010 ('cntrymean_antiauth').",
+  answer("75.69", correct = T),
+  answer("75.7", correct = T),
+  answer("75.70", correct = T),
+  allow_retry = TRUE,
+  incorrect = "Hint: Select the relevant observations with 'filter()' and use the 'mean()' command to calculate the average."
+)
+```
+
+```{r q4, echo = FALSE}
+question_text("And what about the average degree of anti-authoritarianism among non-EU members in the same time frame?",
+  answer("67.2", correct = T),
+  answer("67.18", correct = T),
+  answer("67.20", correct = T),
+  allow_retry = TRUE,
+  incorrect = "Hint: Select the relevant observations with \"filter()\" and use the \"mean()\" command to calculate the average."
+
+)
+```
+
+In the next few tasks, you will go through the steps necessary to calculate the causal effect of EU membership on the anti-authoritarian attitudes of the countries` citizens using a difference-in-differences design. In particular, you will calculate the causal effect of EU-accession on anti-authoritarian values for Romania (treatment unit) compared to Albania (control unit) assuming that anti-authoritarian attitudes would have developed similarly in both countries in the absence of Romania's EU accession.
+
+Calculate the change in anti-authoritarian values for Romania between 2008-2010 and 1999-2004. Round to two digits after the decimal. 
+
+
 ```{r exercise2, exercise = TRUE}
 
 ```
 
-
-```{r q6, echo = FALSE}
-question_text(" What is the unit-specific intercept for Albania? Round the coefficient to two digits after the decimal.",
-  answer("0.86", correct = T),
+```{r q5, echo = FALSE}
+question_text("What is the change in anti-authoritarian values for Romania between 2008-2010 and 1999-2004. Round to two digits after the comma.",
+ # answer(0.32, correct = T),
+  answer("0.32", correct = T),
   allow_retry = TRUE,
-  incorrect = "Hint: is the fixed-effect correctly specified?"
+  incorrect = "Hint: Following what we have done in the lab, calculate the values of \"cntrymean_antiauth\" for Romania for these two time points and subtract them from each other."
 )
 ```
 
-```{r q7, echo = FALSE}
-question_text("What is the coefficient for the duration of World Bank membership  (`length_world`) in the fixed-effects model? Round the coefficient to two digits after the decimal.",
-  answer("0.03", correct = T),
-  allow_retry = TRUE,
-  incorrect = "Hint: is the fixed-effect correctly specified?"
-)
-```
-
-
-
-```{r q8, echo = FALSE}
-question_text("If you wanted to present your results in a table using `screenreg()`, but wanted to exclude the country FE's from the table, what argument would you use?",
-  answer("omit.coef", correct = T),
-  answer("omit.coef = country_name", correct = T),
-  allow_retry = TRUE,
-  incorrect = "Hint: Take a look at the arguments of the screenreg()-function."
-)
-```
-
-
-```{r q9, echo = FALSE}
-question("Comparing the coefficients from the pooled model and from the FE model, what do you conclude?",
-         answer("Due to omitted variable bias our estimate we would have expected a negative relationship between the duration of World Bank membership. After accounting for the unobserved, constant variation between countries, we were able to show that the relationship is, in fact, positive and statistically significant.", correct = T),
-         answer("Accounting for the unobserved, constant variation between countries has shown that there is no effect of World Bank membership on regional authority"),
-         answer("We have different numbers of observation and therefore the coefficients differ.", message = "Take a look at the number of observations included in each model. Are they the same or do they differ?"),
-         answer("The coefficients are the same.", message = "If the coefficients are the same, you may want to retrace your steps and check your code whether there is an error."),
-         random_answer_order = TRUE,
-         allow_retry = T
-)
-```
-
-## Prediction
-
-Remember from the last sessions that predicted values can help us to communicate the results of our analysis. In the following section, the model has already been specified. Please calculate predicted values and confidence intervals for the maximum duration of membership in the **World Bank** for Uruguay and Japan. Compare the predictions. In which of the two countries is the predicted value higher? Don't forget about the confidence intervals.
-
-
-
+Now, calculate the change in anti-authoritarian values for Albania between 2008-2010 and 1999-2004. Round to two digits after the comma.
 
 ```{r exercise3, exercise = TRUE}
-fe_model <-  lm(n_RAI ~ length_EU + length_world + democ + gdp_capita + population_size + nationalization + country_name-1, data = df_tscs)
 
 ```
 
-```{r q10, echo = FALSE}
-question("Comparing the predicted values, in which country is the prediction for sub-national authority higher?",
-  answer("Japan", message = "Keep in mind that confidence intervals are important!"),
-  answer("Uruguay", message = "Keep in mind that confidence intervals are important!"),
-  answer("Unclear, because the confidence intervals overlap.", correct = T),
-  random_answer_order = TRUE,
-  allow_retry = T)
+```{r q6, echo = FALSE}
+question_text(
+  "What is the change in anti-authoritarian values for Albania between 2008-2010 and 1999-2004. Round to two digits after the comma.",
+ # answer(-4.77, correct = T),
+  answer("-4.77", correct = T),
+  allow_retry = TRUE,
+  incorrect = "Hint: Following what we have done in the lab, calculate the values of \"cntrymean_antiauth\" for Albania for these two time points and subtract them from each other."
+)
 ```
 
-In a final step, we want you to calculate predicted values for minimum and maximum values of World Bank membership for Japan and compare them.
 
+## Calculating the ATE
+
+What is the average treatment effect of EU accession for Romania? Based on the two previous exercises you already have everything you need! Alternatively, you can use the code below to calculate the difference between waves (`difference_within`) for the two countries. They will be stored in two objects (`albania`and `romania`). Do not forget to round to two digits after the comma.
+
+```{r set-up}
+
+
+albania <- df_learnr14 %>% 
+    # select relevant variables
+  select(countryname, wave, cntrymean_antiauth) %>% 
+  # filter for treatment and control cases
+  filter(countryname == "Albania") %>% 
+  # filter for pre and post treatment period
+  filter(wave == "1999-2004" | wave == "2008-2010") %>% 
+  # spread out the year variable to make calculation easier
+  spread(wave, cntrymean_antiauth) %>%
+    # rename year values
+  rename("wave2" = `2008-2010`,
+         "wave1" = `1999-2004`) %>%
+  # Calculate difference within units
+  mutate(difference_within = wave2 - wave1)
+
+
+
+romania <- df_learnr14 %>% 
+    # select relevant variables
+  select(countryname, wave, cntrymean_antiauth) %>% 
+  # filter for treatment and control cases
+  filter(countryname == "Romania") %>% 
+  # filter for pre and post treatment period
+  filter(wave == "1999-2004" | wave == "2008-2010") %>% 
+  # spread out the year variable to make calculation easier
+  spread(wave, cntrymean_antiauth) %>%
+    # rename year values
+  rename("wave2" = `2008-2010`,
+         "wave1" = `1999-2004`) %>%
+  # Calculate difference within units
+  mutate(difference_within = wave2 - wave1)
+
+```
 
 ```{r exercise4, exercise = TRUE}
 
 
 ```
 
-```{r q11, echo = FALSE}
-question_text("What is the difference in predicted values for minimum and maximum World Bank membership for Japan? Round to two digits after the decimal",
-  answer("2.10", correct = T),
-  answer("2.1", correct = T),
-  allow_retry = T,
-  incorrect = "Did you correctly specify the scenarios?")
+```{r q8, echo = FALSE}
+question_text(
+  "What is the average treatment effect of EU accession for Romania? Round to two digits after the comma.",
+#  answer(5.09, correct = T),
+  answer("5.09", correct = T),
+  allow_retry = TRUE,
+  incorrect = "Hint: The average treatment effect for the treated (in this case, Romania) is the difference between the change in outcomes for the treatment unit (Romania) and the change in outcomes for the control unit (Albania)."
+)
 ```
+
+
+```{r q9, echo = FALSE}
+question("Does this mean that anti-authoritarian attitudes in Romania ... due to EU accession?",
+  answer("increased", correct = T),
+  answer("decreased"),
+  random_answer_order = TRUE,
+  allow_retry = T,
+  incorrect = "Hint: Think about what the treatment effect means."
+)
+```
+
+## Regression Difference-in-Differences
+
+In a final step, we want you to analyze a difference-in-differences regression model. The treatment group and treatment time are already specified for you in the next chunk. 
+
+
+```{r exercise5, exercise = TRUE}
+
+did_data <- df_learnr14 %>% tibble() %>%
+  filter(countryname == "Romania" | countryname == "Albania" | countryname == "Finland" | countryname == "Ukraine" | countryname == "Switzerland") %>%
+  mutate(treatment_time = ifelse(wave == "2008-2010", 1, 0),
+         treatment_group = ifelse(countryname == "Romania", 1, 0))
+
+```
+
+```{r q10, echo = FALSE}
+question_text(
+  "What is the average treatment effect of EU accession in the regression model? Please round to two digits after the decimal",
+  answer("-8.23", correct = T),
+  allow_retry = TRUE,
+  incorrect = "Hint:Have you specified the data correctly?"
+)
+```
+
 
 
 
@@ -204,5 +216,5 @@ learnrhash::encoder_logic()
 ```
 
 ```{r encode, echo=FALSE}
-learnrhash::encoder_ui(default_ui(url = ""))
+learnrhash::encoder_ui(default_ui(url =""))
 ```
