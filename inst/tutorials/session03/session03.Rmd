@@ -1,5 +1,5 @@
 ---
-title: "Week 03 - Data Wrangling I"
+title: "Session 03 - Data Wrangling I"
 output: 
   learnr::tutorial:
     progressive: true

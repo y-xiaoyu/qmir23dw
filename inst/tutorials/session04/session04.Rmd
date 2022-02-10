@@ -1,0 +1,262 @@
+---
+title: "Week 04 - Data Wrangling II"
+output: 
+  learnr::tutorial:
+    progressive: true
+    allow_skip: false
+    css: "./css/learnr-theme.css"
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+## Packages
+library(learnr)
+library(learnrhash)
+library(tidyverse)
+library(qmir22dw)
+gradethis::gradethis_setup()
+
+## Data
+
+
+
+#load("./data_raw/df_learnr04_parlgov_election.rda")
+#usethis::use_data(parlgov_election, internal = F, overwrite = TRUE)
+
+#load("./data_raw/df_learnr04_parlgov_party.rda")
+#usethis::use_data(parlgov_party, internal = F, overwrite = TRUE)
+
+
+
+
+data(df_learnr04_parlgov_election)
+data(df_learnr04_parlgov_party)
+```
+
+## Introduction
+
+This week we have extended our knowledge on data wrangling and data transformation. Among other things, we have learned about importing different storage types of data into R, variables classes, pivoting data and joining multiple data sets.
+
+In this tutorial, you'll refresh and review some of the things you have learned this week.
+
+### Packages
+
+For the following exercises, you'll need the **tidyverse** package. You should already have this package installed, so go ahead and load it:
+
+```{r load-packages, exercise=TRUE}
+
+```
+
+```{r load-packages-solution}
+library(tidyverse)
+```
+
+```{r load-packages-check}
+grade_this_code("The tidyverse is now loaded!")
+```
+
+## Data
+
+The data for this exercise comes from [Parlgov](http://www.parlgov.org/), a database on parliaments and governments for all countries in the European Union.
+
+The two data sets `parlgov_election` and `parlgov_party`, which are already loaded into the environment, contain the following variables:
+
+- `parlgov_election`
+
+| Variable name |  Description
+|:--------------|:--------------------------------
+| `country` | Abbreviated country name
+| `party` | Party name
+| `2014` | Vote share in the 2014 European Parliament elections
+| `2019` | Vote share in the 2019 European Parliament elections
+
+- `parlgov_party`
+
+| Variable name |  Description
+|:--------------|:--------------------------------
+| `country` | Abbreviated country name
+| `party` | Party name
+| `family_name` | Party family
+| `left_right` | Time-invariant party position on left-right scale
+
+Use the code chunk below, to explore both data sets.
+
+```{r inspect-data, exercise=TRUE}
+
+```
+
+<div id="inspect-data-hint">
+**Hint:** You may want to use functions like `glimpse()`, `head()`, `names()`, `dim()`, `nrow()` or `ncol()` or some of the **dplyr** functions we learned about last week.
+</div>
+
+###
+
+What class is the variable `family_name` in `parlgov_party`?
+
+```{r check-class, exercise=TRUE}
+
+```
+
+<div id="check-class-hint">
+**Hint:** You may want to use `class()` or `glimpse()`.
+</div>
+
+```{r question-class, echo=FALSE}
+question("The party family variable is a ...",
+         answer("character vector", correct = TRUE),
+         answer("numeric vector"),
+         answer("logical vector"),
+         allow_retry = TRUE,
+         random_answer_order = TRUE)
+```
+
+
+## Exercises
+
+### 
+
+Take a peek at the election data (`parlgov_election`) by running the code in the box below.
+
+```{r glimpse-election-data, exercise=TRUE}
+head(parlgov_election)
+```
+
+```{r question-wide-long, echo=FALSE}
+question("Is this data set wide or long?",
+         answer("Wide", correct = TRUE),
+         answer("Long", message = "What characterizes long data? What characterizes wide data? If you need help, refer to Wickham/Grolemund (2017) Chapter 12 or the lecture material."),
+         allow_retry = TRUE
+         )
+```
+
+### 
+
+Correct! Often, we need to pivot data from a wider into a longer form.
+
+```{r question-pivot, echo=FALSE}
+question_checkbox("Why? Check all possible reasons that apply.",
+                  answer("Data in a wider format is not tidy.", correct = TRUE),
+                  answer("A longer format is required to visualize the data.", correct = TRUE),
+                  answer("Data in a longer form always saves storage space.", 
+                         message = "If you need help, refer to Wickham/Grolemund (2017) Chapter 12 or the lecture material."),
+                  answer("Data in a wider format cannot be saved.",
+                         message = "If you need help, refer to Wickham/Grolemund (2017) Chapter 12 or the lecture material."),
+                  allow_retry = TRUE,
+                  random_answer_order = TRUE
+                  )
+```
+
+###
+
+```{r question-pivot-longer, echo=FALSE}
+question_checkbox("What does the function \"pivot_longer( )\" do? Check all answers that apply.",
+                  answer("It transforms data from a wider into a longer format.", correct = TRUE),
+                  answer("It transforms data from a longer into a wider format.",
+                         message = "That's \"pivot_wider()\". If you need help, refer to Wickham/Grolemund (2017) Chapter 12 or the lecture material."),
+                  answer("It checks whether a data set is in longer format.", 
+                         message = "There is no specific function that tells you whether a data set is in longer format. Instead, you have to inspect the data set. If you need help, refer to Wickham/Grolemund (2017) Chapter 12 or the lecture material."),
+                  answer("It checks whether a data set is in wider format.", 
+                         message = "There is no specific function that tells you whether a data set is in wider format. Instead, you have to inspect the data set. If you need help, refer to Wickham/Grolemund (2017) Chapter 12 or the lecture material."),
+                  allow_retry = TRUE,
+                  random_answer_order = TRUE
+                  )
+```
+
+###
+
+Pivot `parlgov_election` into a longer, tidy form. Name the two new resulting variables `election_year` and `vote_share`.
+
+```{r exercise-pivot, exercise=TRUE}
+parlgov_election_longer <- _____ %>%
+  _____(_____ = ____,
+      ____ = ____,
+      ____ = ____)
+```
+
+```{r exercise-pivot-hint-1}
+parlgov_election_longer <- ____ %>%
+  pivot____(____ = ____,
+            ____ = ____,
+            ____ = ____)
+```
+
+```{r exercise-pivot-hint-2}
+parlgov_election_longer <- ____ %>%
+  pivot_longer(____ = ____,
+               ____ = ____,
+               ____ = ____)
+```
+
+```{r exercise-pivot-hint-3}
+parlgov_election_longer <- ____ %>%
+  pivot_longer(cols = ____, 
+               names_to = ____,
+               values_to = ____)
+```
+
+```{r exercise-pivot-solution, exercise.reveal_solution = FALSE}
+parlgov_election_longer <- parlgov_election %>%
+  pivot_longer(cols = `2014`:`2019`, 
+               names_to = "election_year",
+               values_to = "vote_share")
+```
+
+```{r exercise-pivot-check}
+grade_this_code("You successfully pivoted the data set to a longer form. You can now move on to joining it with \"parlgov_party\" in the next exercise.")
+```
+
+### Joining data sets
+
+Next, we want to add information on the party family and left-right position from `parlgov_party` to all parties contained in `parlgov_election_longer`.
+
+```{r question-join, echo=FALSE}
+question("Which of the following joins do you need to use?",
+         answer("left_join()", correct = TRUE),
+         answer("right_join()", message = "right_join() would add the vote shares to the data set containing party family and left-right position - not the other way around. For more information check Wickham/Grolemund (2017) Chapter 13 or the lecture material."),
+         answer("full_join()", message = "full_join() would keep all observations in both data sets. For more information check Wickham/Grolemund (2017) Chapter 13 or the lecture material."),
+         answer("anti_join()", message = "anti_join() would only keep observations that do not have a match in the other data set. For more information check Wickham/Grolemund (2017) Chapter 13 or the lecture material."),
+         allow_retry = TRUE,
+         random_answer_order = TRUE
+         )
+```
+
+###
+
+Now, join both data sets as described above.
+
+```{r prepare-join, include=FALSE}
+parlgov_election_longer <- pivot_longer(parlgov_election,
+                                        cols = `2014`:`2019`,
+                                        names_to = "election_year",
+                                        values_to = "vote_share")
+```
+
+```{r exercise-join, exercise=TRUE, exercise.setup="prepare-join"}
+parlgov_joined <- ____(____, ____, ____)
+```
+
+```{r exercise-join-hint-1}
+parlgov_joined <- ____(____, ____, by = ____)
+```
+
+```{r exercise-join-hint-2}
+parlgov_joined <- ____(____, ____, by = c(____, ____))
+```
+
+```{r exercise-join-solution, exercise.reveal_solution = FALSE}
+parlgov_joined <- left_join(parlgov_election_longer, parlgov_party, by = c("country", "party"))
+```
+
+```{r exercise-join-check}
+grade_this_code("You successfully joined both data sets.")
+```
+
+## Submit
+
+```{r context="server"}
+learnrhash::encoder_logic()
+```
+
+```{r encode, echo=FALSE}
+learnrhash::encoder_ui(default_ui(url = "https://someurl.com"))
+```
