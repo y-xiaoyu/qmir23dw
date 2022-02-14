@@ -4,7 +4,7 @@ output:
   learnr::tutorial:
     progressive: true
     allow_skip: false
-    css: "css/learnr-theme.css"
+    css: "learnr-theme.css"
 runtime: shiny_prerendered
 ---
 
@@ -290,5 +290,5 @@ learnrhash::encoder_logic()
 ```
 
 ```{r encode, echo=FALSE}
-learnrhash::encoder_ui(default_ui(url = "https://ilias.uni-mannheim.de/ilias.php?baseClass=ilObjSurveyGUI&ref_id=1239722&cmd=infoScreen"))
+learnrhash::encoder_ui(default_ui(url = "https://ilias.uni-mannheim.de/goto.php?target=svy_1239722&client_id=ILIAS"))
 ```

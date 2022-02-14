@@ -247,5 +247,5 @@ learnrhash::encoder_logic()
 ```
 
 ```{r encode, echo=FALSE}
-learnrhash::encoder_ui(default_ui(url = "https://someurl.com"))
+learnrhash::encoder_ui(default_ui(url = "https://ilias.uni-mannheim.de/goto.php?target=svy_1239746&client_id=ILIAS"))
 ```
