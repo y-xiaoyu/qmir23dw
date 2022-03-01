@@ -236,7 +236,7 @@ ep_elections %>%
 
 ```{r q9, echo=FALSE}
 question_text(
-  "What is the average voter turnout in Germany? Enter the number, rounded to two digits after the decimal.",
+  "What is the average voter turnout (`voter_turnout_pc`) in Germany? Enter the number, rounded to two digits after the decimal.",
   answer("53.98", correct = TRUE),
   allow_retry = TRUE,
   incorrect = "Not quite. Have you entered the number with two digits after the decimal?"
