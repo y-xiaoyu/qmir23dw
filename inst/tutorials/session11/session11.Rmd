@@ -54,7 +54,7 @@ question("What is the identification strategy for difference-in-differences desi
 
 ## Difference-in-Differences
 
-Take a look at our data-set `df_learnr14`. What is the average degree of anti-authoritarianism (`cntrymean_antiauth`) among EU members(`EU`) in 2008-2010 (`wave`). Please round to the second decimal.
+Take a look at our data-set `df_ci`. What is the average degree of anti-authoritarianism (`cntrymean_antiauth`) among EU members(`EU`) in 2008-2010 (`wave`). Please round to the second decimal.
 
 ```{r exercise1, exercise = TRUE}
 
@@ -123,7 +123,7 @@ What is the average treatment effect of EU accession for Romania? Based on the t
 ```{r set-up}
 
 
-albania <- df_learnr14 %>% 
+albania <- df_ci %>% 
     # select relevant variables
   select(countryname, wave, cntrymean_antiauth) %>% 
   # filter for treatment and control cases
@@ -140,7 +140,7 @@ albania <- df_learnr14 %>%
 
 
 
-romania <- df_learnr14 %>% 
+romania <- df_ci %>% 
     # select relevant variables
   select(countryname, wave, cntrymean_antiauth) %>% 
   # filter for treatment and control cases
@@ -190,7 +190,7 @@ In a final step, we want you to analyze a difference-in-differences regression m
 
 ```{r exercise5, exercise = TRUE}
 
-did_data <- df_learnr14 %>% tibble() %>%
+did_data <- df_ci %>% tibble() %>%
   filter(countryname == "Romania" | countryname == "Albania" | countryname == "Finland" | countryname == "Ukraine" | countryname == "Switzerland") %>%
   mutate(treatment_time = ifelse(wave == "2008-2010", 1, 0),
          treatment_group = ifelse(countryname == "Romania", 1, 0))
