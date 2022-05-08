@@ -18,8 +18,8 @@ gradethis:: gradethis_setup()
 library(tidyverse)
 
 #load("./data_raw/df_learnr12.rda")
-df_tscs <- df_learnr12
-usethis::use_data(df_tscs, internal = F, overwrite = TRUE)
+#df_tscs <- df_learnr12
+#usethis::use_data(df_tscs, internal = F, overwrite = TRUE)
 
 #load("df_learnr12.rda") # for local testing
 ```
