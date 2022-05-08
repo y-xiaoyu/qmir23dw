@@ -18,7 +18,7 @@ library(gradethis)
 gradethis::gradethis_setup()
 data(df_learnr14)
 
-load("./data_raw/df_learnr14.rda")
+#load("./data_raw/df_learnr14.rda")
 df_ci <- df_learnr14
 usethis::use_data(df_ci, internal = F, overwrite = TRUE)
 
