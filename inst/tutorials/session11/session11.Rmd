@@ -14,11 +14,12 @@ library(learnrhash)
 library(tidyverse)
 library(highlight)
 library(gradethis)
+library(qmir22dw)
 
 gradethis::gradethis_setup()
-#data('./data_raw/df_learnr14.rda')
+#data('../../df_learnr14')
 #getwd()
-#load("C:/Users/dweyrauc/Documents/Arbeit/Teaching/2022_FSS_QMIR/learnr/qmir22dw/data_raw/df_learnr14.rda")
+#load("~/Arbeit/Teaching/2022_FSS_QMIR/learnr/qmir22dw/data_raw/df_learnr14.rda")
 #df_ci <- df_learnr14
 usethis::use_data(df_ci, internal = F, overwrite = TRUE)
 
