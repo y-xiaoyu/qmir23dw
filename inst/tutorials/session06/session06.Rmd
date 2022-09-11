@@ -344,7 +344,7 @@ learnrhash::encoder_logic(strip_output = TRUE)
 ```
 
 ```{r encode, echo=FALSE}
-learnrhash::encoder_ui(default_ui(url = "https://ilias.uni-mannheim.de/goto.php?target=svy_1239751&client_id=ILIAS"))
+learnrhash::encoder_ui(default_ui(url = "https://ilias.uni-mannheim.de/ilias.php?baseClass=ilObjSurveyGUI&ref_id=1300992&cmd=infoScreen"))
 ```
 
 
