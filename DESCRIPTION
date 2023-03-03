@@ -1,5 +1,5 @@
-Package: qmir22dw
-Title: Quantitative Methods in International Relations 22 - learnr exercises
+Package: qmir23dw
+Title: Quantitative Methods in International Relations 23 - learnr exercises
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "David",
